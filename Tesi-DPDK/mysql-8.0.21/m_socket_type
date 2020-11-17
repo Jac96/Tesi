@@ -1,0 +1,8 @@
+sql/conn_handler/socket_connection.cc:1372:  if (listen_socket->m_socket_type == Socket_type::TCP_SOCKET) {
+sql/conn_handler/socket_connection.cc:1374:        (listen_socket->m_network_namespace != nullptr
+sql/conn_handler/socket_connection.cc:1375:             ? *listen_socket->m_network_namespace
+sql/conn_handler/socket_connection.cc:1382:  if (accept_connection(listen_socket->m_socket, &connect_sock)) {
+sql/conn_handler/socket_connection.cc:1397:  if ((listen_socket->m_socket_type == Socket_type::TCP_SOCKET) &&
+sql/conn_handler/socket_connection.cc:1404:  if (listen_socket->m_socket_type == Socket_type::UNIX_SOCKET)
+sql/conn_handler/socket_connection.cc:1408:        connect_sock, (listen_socket->m_socket_interface ==
+sql/conn_handler/socket_connection.cc:1418:  if (listen_socket->m_socket_type == Socket_type::TCP_SOCKET &&

@@ -1,0 +1,29 @@
+$ORIGIN net1.test.
+$TTL 1W
+@                       1D IN SOA       serverkde. root.net1.test (
+                                        2010081401   ; Serial YYYYMMDDXX
+                                        3H           ; refresh
+                                        15M          ; retry
+                                        1W           ; expiry
+                                        1D )         ; minimum
+
+                        1D IN NS        server
+server			   					1D IN A         10.0.0.9
+pcscf                   1D IN CNAME     server
+icscf                   1D IN CNAME     server
+scscf                   1D IN CNAME     server
+hss                     1D IN CNAME     server
+as1                     1D IN CNAME     server
+as2                     1D IN CNAME     server
+xcap                    1D IN CNAME     server
+
+notebook                1D IN A         10.0.0.10
+
+net1.test.		    1D IN NAPTR 10 100 "s" "SIP+D2T"	""	_sips._tcp.net1.test.
+net1.test.		    1D IN NAPTR 20 100 "s" "SIP+D2T"	""	_sip._tcp.net1.test.
+net1.test.		    1D IN NAPTR 30 100 "s" "SIP+D2U"	""	_sip._udp.net1.test.
+
+_sip                    1D SRV 0 0 5060 server
+_sips._tcp              1D SRV 0 0 5061 server
+_sip._tcp               1D SRV 0 0 5060 server
+_sip._udp               1D SRV 0 0 5060 server

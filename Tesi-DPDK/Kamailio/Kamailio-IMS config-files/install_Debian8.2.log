@@ -1,0 +1,684 @@
+=======================================================================================================
+Installation Debian 8.2 on   29.11.2015 16:18:43			
+------------------------------------------------
+- Use D:\_\SW\Debian 8.2\debian-8.2.0-amd64-i386-netinst.iso
+- VMware guest configuration:
+  - install as "Debian 6"
+  - install at: C:\Users\Franz\Documents\Virtual Machines\Debian_8.2
+  - maximum disk size 20 GB
+  - store virtual disk as a single files
+  - network connection: bridged
+  - customize hardware: remove floppy, printer
+- Installation: 
+  - 64 bit install
+  - install language: English
+  - Country: Austria
+  - Locales: en_US.UTF-8
+  - Keymap: German
+  - Use ethernet connection (cable) otherwise network autoconfiguartion failed
+  - hostname: server
+  - domain name: lan
+  - user:
+    root / root
+    Franz Edler / franz / franz
+  - partitioning method: Guided - use entire disk
+    - disk SCSI3 (0,0,0) (sda)           21,5 GB VMware Virtual S
+    - use full disk space for partitioning
+    - all files in one partition         --> SCSI3 (0,0,0) sda
+      #1 primary   20,5 GB B f ext4 /
+      #5 logical  922.7 MB   f swap  swap
+  - installing the base system ...  
+  - Debian archive mirror: Austria - ftp.at.debian.org 
+    no proxy in home environment
+    configuring apt ... preparing Linux image 
+  - software selection: only standard system utilities
+    --> running tasksel (SSH and standard system utilities only) and retrieving 268 packages
+  - GRUB in MBR, device for bootloader installation: /dev/sda
+  - guest HW: disconnect CD at power on
+  - finish and reboot
+  - IP address assigned: 10.0.0.16  (DHCP dynamically)
+
+Install various SW packages
+- apt-get install ssh
+  change in /etc/ssh/sshd_config: PermitRootLogin --> yes
+  and restart sshd
+continue installation via WinSCP & PUTTy
+- apt-get install tcpdump
+- apt-get install screen
+- pt-get install ntp
+- apt-get install ntpdate
+  ntpdate pool.ntp.org
+
+set interface address - static:
+  - /etc/network/interfaces:
+
+    # The loopback network interface
+    auto lo
+    iface lo inet loopback
+
+->  # The primary network interface
+    allow-hotplug eth0             
+    #iface eth0 inet dhcp          
+    iface eth0 inet static         
+    address 10.0.0.09              
+    netmask 255.255.255.0          
+    broadcast 10.0.0.255           
+    gateway 10.0.0.1               
+
+restart network:
+- /etc/init.d/networking restart
+  --> due to changed interface data eth0 is dead (unknown)
+  - ifup eth0
+
+apt-get install bash-completion --> already installed
+
+- /root/.bashrc
+  uncomment some lines to e.g.
+  -> enable "ls" colorized and some shortcuts
+  and add further
+
+  alias grep='grep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias egrep='egrep --color=auto'
+
+  # advanced command completion (shows command-options: example dpkg -(tab)(tab)
+  source /etc/bash_completion
+
+some commands:
+root@server:/# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:0c:29:92:4a:38
+          inet addr:10.0.0.9  Bcast:10.0.0.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe92:4a38/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:633 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:439 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:57896 (56.5 KiB)  TX bytes:72601 (70.8 KiB)
+          Interrupt:18 Base address:0x2000
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+       
+
+root@server:/# route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         10.0.0.1        0.0.0.0         UG    0      0        0 eth0
+10.0.0.0        *               255.255.255.0   U     0      0        0 eth0
+
+root@server:/# df
+Filesystem     1K-blocks   Used Available Use% Mounted on
+/dev/sda1       19620732 977244  17623740   6% /
+udev               10240      0     10240   0% /dev
+tmpfs             204892   4600    200292   3% /run
+tmpfs             512220      0    512220   0% /dev/shm
+tmpfs               5120      0      5120   0% /run/lock
+tmpfs             512220      0    512220   0% /sys/fs/cgroup
+
+root@server:/# uname -a
+Linux server 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt11-1+deb8u6 (2015-11-09) x86_64 GNU/Linux
+
+create and configure DNS:
+  - apt-get install bind9
+  - edit /etc/bind/named.conf.local
+  - create the required zone-files:
+    net1.test.zone
+    net2.test.zone
+    0.0.10.zone
+  - edit  /etc/bind/named.conf.options 
+    - include forwarders (avoid home router as additional hop)
+    - disable dnssec  
+    - disable (comment) dnssec-validation auto; 
+    - disable (comment) listen-on-v6 { any; };
+  
+- /etc/resolv.conf
+  domain net1.test
+  search net1.test
+  nameserver server.net1.test
+  nameserver server.net1.test
+
+- /etc/hosts
+  127.0.0.1 localhost
+  10.0.0.20   server.net1.test  server
+  (disable (via comment) IPv6 addresses - not done)
+
+restart bind and check syslog via command "tail -F /var/log/syslog" for errors
+  outdated:
+  - /etc/init.d/bind9 stop
+  - /etc/init.d/bind9 start
+  new:
+  - systemctl stop bind9
+  - systemctl start bind9
+
+general check and further commands: 
+  - systemctl										lists all "units"
+  - systemctl --type=service		lists all "services"
+  - systemctl disable/enable xxx.service
+  - systemd-analyze							shows duration of last boot
+  for details see: http://www.admin-magazin.de/Das-Heft/2014/10/Systemstart-mit-Systemd-unter-Linux
+  
+check DNS on guest system:
+  - dig server.net1.test
+  - dig server.net2.test
+
+reconfigure network adapter on notebook (static config with DNS-server = VMware guest)
+
+check DNS on host system:
+  - ping server.net1.test
+
+update package administration:
+  - apt-get check               check consistency
+  - apt-get update              update list of available packages
+  - apt-get upgrade             upgrade involved packages to actual version
+  - apt-get dist-upgrade      	upgrade involved packages if necessary (in case of special priorities)
+  - apt-get clean               deletes downloaded packages from /var/cache/apt/archives and /var/cache/apt/archives/partial
+
+how to search a packet based on a string (e.g mysql-server):
+  - apt-cache search <packet>
+  - apt-cache search mysql-server
+  
+== saved as Debian_8.2-step1 on 29.11.2015 21:25:00 =========================================================
+============================================================================================================
+
+Install and maintain Kamailio v4.3.4 Version From GIT
+-----------------------------------------------------
+http://www.kamailio.org/wiki/install/4.3.x/git
+
+1. prerequisites
+---------------- 
+apt-get install git-core
+apt-get install gcc
+apt-get install flex
+apt-get install bison
+apt-get install libmysqlclient-dev
+apt-get install make
+apt-get install libssl-dev
+apt-get install libcurl4-openssl-dev
+apt-get install libxml2-dev
+apt-get install libpcre3-dev
+
+install mysql
+- apt-get install mysql-server-5.5
+  root password = root
+- enable access to mysql from remote hosts (very generous and dangerous in real world):
+  mysql -u root -p
+    GRANT ALL ON *.* TO root IDENTIFIED BY 'root';
+    quit
+- replace bind-address in /etc/mysql/my.cnf to 10.0.0.9 (instead of 127.0.0.1) to enable remote access
+- restart mysql and check via command "tail -F /var/log/syslog" for errors
+  - /etc/init.d/mysql stop
+  - /etc/init.d/mysql start
+- check remote access via MySQL workbench
+ 
+
+2. Getting sources from GIT
+---------------------------
+mkdir -p /usr/local/src/kamailio-4.3
+cd /usr/local/src/kamailio-4.3
+
+Download:
+
+git clone --depth 1 --no-single-branch git://git.kamailio.org/kamailio kamailio
+cd kamailio
+git checkout -b 4.3 origin/4.3
+
+     
+3.Tuning Makefiles
+------------------
+The first step is to generate build config files.
+-> make cfg
+
+Next step is to enable the MySQL module. Edit modules.lst file:
+Add db_mysql to the variable include_modules:
+-> include_modules=db_mysql ims_usrloc_pcscf ims_registrar_pcscf
+
+(make include_modules="db_mysql" cfg)
+ 
+4. Compile Kamailio
+-------------------
+Once you added the mysql module to the list of enabled modules, you can compile Kamailio:
+- make all
+You can get full compile flags output using:
+- make Q=0 all | tee make_all.txt
+
+5. Install Kamailio
+-------------------
+When the compilation is ready, install Kamailio with the following command:
+-  make install | tee make_install.txt
+	 (takes long when done a 2nd time)
+
+6. What and where was installed
+-------------------------------
+The binaries and executable scripts were installed in:
+  /usr/local/sbin
+  These are:
+    kamailio - Kamailio SIP server
+    kamdbctl - script to create and manage the Databases
+    kamctl - script to manage and control Kamailio SIP server
+    sercmd - CLI - command line tool to interface with Kamailio SIP server
+
+To be able to use the binaries from command line, make sure that '/usr/local/sbin' is set in PATH environment variable. 
+You can check that with 'echo $PATH'. If not and you are using 'bash', open '/root/.bash_profile' and at the end add:
+  PATH=$PATH:/usr/local/sbin
+  export PATH
+
+Kamailio modules are installed in:
+  /usr/local/src/kamailio/modules
+  /usr/local/lib64/kamailio/modules
+
+The documentation and readme files are installed in:
+  /usr/local/share/doc/kamailio/
+
+The man pages are installed in:
+  /usr/local/kamailio-4.3/share/man/
+
+The configuration file was installed in:
+  /usr/local/etc/kamailio
+
+In case you set the PREFIX variable in 'make cfg …' command, then replace /usr/local in all paths above with the value of PREFIX 
+in order to locate the files installed.
+
+7. Create MySQL database
+------------------------
+To create the MySQL database, you have to use the database setup script. First edit kamctlrc file to set the database server type:
+  nano -w /usr/local/kamailio-4.3/etc/kamailio/kamctlrc
+
+Locate DBENGINE variable and set it to MYSQL:
+DBENGINE=MYSQL
+
+You can change other values in kamctlrc file, at least it is recommended to change the default passwords for the users to be created to connect to database.
+
+Once you are done updating kamctlrc file, run the script to create the database used by Kamailio:
+
+  /usr/local/kamailio-4.3/sbin/kamdbctl create  
+	--> all database tables created
+
+check database manually;
+ - mysql -u root -p
+ - show databases;
+ - use kamailio;
+ - show tables;
+ - select * from subscriber;
+or with mysql workbench.    
+
+The script will add two users in MySQL:
+- kamailio   - (with default password 'kamailiorw') - user which has full access rights to 'kamailio' database
+- kamailioro - (with default password 'kamailioro') - user which has read-only access rights to 'kamailio' database
+
+Do change the passwords for these two users to something different that the default values that come with sources.
+-> not required for lab-application
+
+2 subscribers added via kamctl
+- kamctl add alice alice
+- kamctl add bob bob
+
+check manually:
+- select * from subscriber;
+
+== saved as Debian_8.2-step2 on 01.12.2015 21:33:30 ========================================================
+============================================================================================================
+
+8. Edit configuration file
+--------------------------
+To fit your requirements for the VoIP platform, you have to edit the configuration file.
+  /usr/local/etc/kamailio/kamailio.cfg
+
+Follow the instruction in the comments to enable usage of MySQL. Basically you have to add several lines at the top of config file, like:
+#!define WITH_MYSQL
+#!define WITH_AUTH
+#!define WITH_USRLOCDB
+
+If you changed the password for the 'kamailio' user of MySQL, you have to update the value for 'db_url' parameters.
+
+You can browse kamailio.cfg online on GIT repository.
+
+9. The init.d script
+--------------------
+The init.d script can be used to start/stop the Kamailio server in a nicer way. A sample of init.d script for Kamailio is provided at:
+/usr/local/src/kamailio-4.0/kamailio/pkg/kamailio/deb/debian/kamailio.init
+
+Just copy the init file into the /etc/init.d/kamailio. Then change the permissions:
+  chmod 755 /etc/init.d/kamailio 
+then edit the file updating the $DAEMON and $CFGFILE values:
+
+  DAEMON=/usr/local/sbin/kamailio
+  CFGFILE=/usr/local/etc/kamailio/kamailio.cfg
+
+You need also setup a configuration file in the /etc/default/ directory. This file can be found at:
+  /usr/local/src/kamailio-4.0/pkg/kamailio/debian/kamailio.default
+
+You need to rename the file to 'kamailio' after you've copied it. Then edit this file and set RUN_KAMAILIO=yes. Edit the other options at your convenience.
+
+Create the directory for pid file:
+mkdir -p /var/run/kamailio
+
+Default setting is to run Kamailio as user “kamailio” and group “kamailio”. For that you need to create the user:
+
+adduser --quiet --system --group --disabled-password \
+        --shell /bin/false --gecos "Kamailio" \
+        --home /var/run/kamailio kamailio
+
+# set ownership to /var/run/kamailio
+chown kamailio:kamailio /var/run/kamailio
+
+Then you can start/stop Kamailio using the following commands:
+
+  /etc/init.d/kamailio start
+  /etc/init.d/kamailio stop
+  
+  check running processes with: ps axw | egrep kamailio
+
+10. Ready to rock
+-----------------
+Now everything is in place. You can start the VoIP service, creating new accounts and setting the phones.
+
+A new account can be added using 'kamctl' tool via 'kamctl add <username> <password> <email>'. (or try without the email)
+
+kamctl add test testpasswd test@mysipserver.com
+
+If you are asked for SIP_DOMAIN environment variable do one of the following option.
+  1.   export SIP_DOMAIN=mysipserver.com
+  2.   edit '/root/.kamctlrc' and add:   SIP_DOMAIN=mysipserver.com
+
+11. Maintenance
+--------------
+The maintenance process is very simple right now. You have to be user 'root' and execute following commands:
+
+  cd /usr/local/src/kamailio-4.0/kamailio
+  git pull origin
+  make all
+  make install
+  /etc/init.d/kamailio restart
+
+Now you have the latest Kamailio devel running on your system.
+
+12. Time for maintenance service
+--------------------------------
+Notification about GIT commits are sent to the mailing list: sr-dev@lists.sip-router.org. Each commit notification contains the reference to the branch where 
+the commit has been done. If the commit message contains the lines:
+
+Module: sip-router
+Branch: 4.0
+
+then an update has been made to Kamailio devel version and it will be available to the public GIT in no time.
+-------------------------------------------------------------------------------------------------------------
+
+Best practice to test:
+
+a) start/stop kamailio in fork mode
+   - kamctl start
+   - kamctl stop
+   
+b) start stop in foreground (debug) mode:
+   - kamailio
+     uses default configuration file with following paameters set (modified)
+     - log_stderror=yes		-> causes log to be shown on console instead of syslog
+     - fork=no						-> no daemon mode
+     
+   - further parameters: see kamailio -h
+   
+Debugging: 
+- switch "WITH_DEBUG" increases debug level to 3 and also enables debugger module with cfgtrace=1
+ 								LOG Levels: 3=DBG, 2=INFO, 1=NOTICE, 0=WARN, -1=ERR  
+- alternative:  keep "WITH_DEBUG" off and set "log_stderror=yes"; 
+                this prints log and error message to console if in foreground mode.
+                use log and xlog like
+                log("L_INFO",  "FE: message received\n");
+                xlog("L_INFO", "SIP Request: method [$rm] from [$fu] to [$tu]\n");
+                
+later: kamailio.cfg modified: accounting disabled (see ;# statements)
+
+
+== saved as Debian_8.2-step3 on 08.12.2015 13:06:38 ========================================================
+============================================================================================================
+
+== based on Debian_8.2-step3-basicKamailio =================================================================
+============================================================================================================
+
+Installation of the Kamailio-IMS-Packages
+-----------------------------------------
+http://www.kamailio.org/wiki/tutorials/ims/installation-howto
+-	followed in principle but binary packages not used!!! compiled instead
+
+compile alls IMS modules generate build config files
+- cd /usr/local/src/kamailio-4.3/kamailio/
+	modify modules.lst for included modules and excluded modules (use saved file)
+	- include: ims_auth ims_charging ims_icscf ims_isc ims_qos ims_registrar_pcscf ims_registrar_scscf ims_usrloc_pcscf ims_usrloc_scscf dialog_ng cdp cdp_avp
+	- exclude: delete included modules above
+	        
+- compile
+	make Q=0 all | tee make_all2.txt
+- install
+	make install | tee make_install2.txt
+	
+- check	additional (included) modules are in /usr/local/lib64/kamailio/modules
+
+create new mysql database for pcscf and scscf
+	- mysql -u root -p
+  - CREATE DATABASE  `pcscf`;
+  - CREATE DATABASE  `scscf`;
+ 
+Update mysql database permissions  
+
+  - grant delete,insert,select,update on pcscf.* to pcscf@server.net1.test identified by 'heslo';
+  - grant delete,insert,select,update on pcscf.* to pcscf@server.net2.test identified by 'heslo';
+  - grant delete,insert,select,update on scscf.* to scscf@server.net1.test identified by 'heslo';
+  - grant delete,insert,select,update on scscf.* to scscf@server.net2.test identified by 'heslo';
+
+Modify & add mysql database files for P-CSCF and S-CSCF (ue saved files)
+	/usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/ims_usrloc_pcscf-create.sql
+	/usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/ims_usrloc_scscf-create.sql
+	modifications done:
+	- add: USE pcscf; or 
+	       USE pcscf;
+	- change: INSERT INTO to REPLACE INTO
+	- insert before CREATE TABLE xxxxxxx;
+	  DROP TABLE IF EXISTS xxxxxxx;
+	-> sql-files saved; copy (overvrite) both files to /usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql
+	
+	Create the tables:
+	-	mysql -u root -p < /usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/ims_usrloc_pcscf-create.sql
+	- mysql -u root -p < /usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/ims_usrloc_scscf-create.sql
+	
+	- add also presence-table into scscf-database (saved)
+    mysql -u root -p < /usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/presence-create.sql
+	
+Create ICSCF database;
+  - mysql -u root -p < /usr/local/src/kamailio-4.3/kamailio/utils/kamctl/mysql/icscf.mysql.sql
+- adapt permissions/privileges of users
+  - grant delete,insert,select,update on icscf.* to icscf@server.net1.test identified by 'heslo';       
+  - grant delete,insert,select,update on icscf.* to icscf@server.net2.test identified by 'heslo';       
+  - grant delete,insert,select,update on icscf.* to provisioning@server.net1.test identified by 'provi';
+  - grant delete,insert,select,update on icscf.* to provisioning@server.net2.test identified by 'provi'; 
+	
+Verify tables with Mysql workbench
+  - P-SCSF: pcscf.location   
+  - I-CSCF: nds_trusted_domains
+  					s_cscf
+  					s_cscf_capabilities   
+  - S-CSCF: scscf.contact        
+            scscf.impu           
+            scscf.impu_contact   
+            scscf.subscriber     
+            scscf.impu_subscriber
+
+Verify that basic kamilio still works (uses other MySQL database)
+
+
+Installation of FHoSS	04.01.2016 14:14:46
+-----------------------------------------
+
+Precondition for FHoSS:
+install Java JDK and ant (required for OpenIMSCore FHoSS)
+  - apt-get install openjdk-7-jdk				-> 198 MB
+  - apt-get install ant
+
+Download FHoSS
+  - apt-get install subversion
+  - (apt-get install ipsec-tools) - not required?
+
+  create working directories for OpenIMSCore:
+  - mkdir /opt/OpenIMSCore
+  - cd /opt/OpenIMSCore
+  
+  download:
+  - svn checkout svn://svn.code.sf.net/p/openimscore/code/FHoSS/trunk
+  --> Checked out revision 1195.
+  reneame "/opt/OpenIMSCore/trunk" subdirectory to "/opt/OpenIMSCore/FHoSS"
+
+compile:
+  cd FHoSS
+  ant compile deploy | tee ant_compile_deploy.txt
+
+adapt all configuration files:
+
+  change the domain name by using configurator.sh (apply script in three directories):
+    usage: in order to change the domain name and ip address you can use a script(configurator.sh) at ser_ims/cfg/.
+    Copy the all *.sql *.cfg *.xml files that you want to modify to the same directory as configurator.sh and execute it.
+    Follow the instructions then you should have your files reconfigured for new domain and ip.
+
+ -  directory: cd /opt/OpenIMSCore/FHoSS/deploy
+    copy configurator.sh to this directory and mark it executable (saved on D:\_\ZTest\Kamailio_4.3\IMS)
+    ./configurator.sh
+    Domain Name:net1.test
+    IP Adress:10.0.0.9
+    File to change ["all" for everything, "exit" to quit]:all
+    changing: c3p0.properties DiameterPeerHSS.xml hibernate.properties hss.properties log4j.properties
+    
+  - directory: /opt/OpenIMSCore/FHoSS/scripts
+    cd ../scripts;   cp ../deploy/configurator.sh .; ./configurator.sh
+    Domain Name:net1.test
+    IP Adress:10.0.0.9
+    File to change ["all" for everything, "exit" to quit]:all
+    changing: hss_db_migrate_dsai.sql hss_db.sql userdata.sql
+
+prepare mysql database:
+    in case of OpenIMSCore update drop old databases: hss_db
+      mysql -u root -p
+        drop database hss_db;
+        quit
+    create new databases: go to directory /opt/OpenIMSCore
+      cd ../..
+      mysql -u root -p < FHoSS/scripts/hss_db.sql
+      mysql -u root -p < FHoSS/scripts/userdata.sql
+      
+    Modify mysql access rights at first time installation (not covered by configurator):
+    mysql -u root -p
+    # see last line in hss_db.sql:
+      --> grant delete,insert,select,update on hss_db.* to hss@server.net1.test identified by 'hss';
+          grant delete,insert,select,update on hss_db.* to hss@server.net2.test identified by 'hss';
+
+    check database with MySQL Workbench if domain names are  o.k. in various entries and privileges
+    or manually: e.g.
+      show databases;
+      use hss_db;
+      select * from impu;
+
+Prepare script-file, last modifications and start ...
+
+  copy startup.sh to hss.sh in root directory
+    cp /opt/OpenIMSCore/FHoSS/deploy/startup.sh /root/hss.sh
+  and add to hss.sh
+    cd /opt/OpenIMSCore/FHoSS/deploy
+    JAVA_HOME="/usr/lib/jvm/java-7-openjdk-amd64"
+
+start HSS from /root:  ./hss.sh
+
+access the web-interface of HSS:
+  http://hss.net1.test:8080/hss.web.console/
+    user:      hssAdmin
+    password:  hss
+
+configure IMS:
+
+modify pcscf, icscf and scscf configuration-files accordingly
+- set parameters according to actual environment
+- disable all additional features beyond the IMS core functions
+- add a tracepoint (xlog) for each request at the begin of the main route:
+    xlog("L_INFO","%CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu\n%Cxx")
+
+P-CSCF:
+-------
+- use modified files: pcscf.cfg and kamailio-pcscf.cfg
+- kamailio -f /usr/local/etc/kamailio/kamailio-pcscf.cfg
+
+I-CSCF:
+-------
+- use modified files: icscf.cfg and kamailio-icscf.cfg
+- kamailio -f /usr/local/etc/kamailio/kamailio-icscf.cfg
+
+-  8(1673) ERROR: cdp [peerstatemachine.c:635]: I_Snd_CER(): I_Snd_CER(): Error on finding local host address > Socket operation on non-socket
+
+S-CSCF
+------
+- use modified files: scscf.cfg and kamailio-scscf.cfg
+- kamailio -f /usr/local/etc/kamailio/kamailio-scscf.cfg
+
+== Debian_8.2-step5-basicKamailio&basicIMScore on 06.01.2016 12:13:39 ====================================
+===========================================================================================================
+
+IMS enhancement: activatione of P-CSCF: SUBSCRIBE to reg event
+- in pcscf.cfg: set #!define WITH_REGINFO
+- compile pua (now enabled im modules.lst)
+- set in pua-params the right table 
+  modparam("pua", "db_url", "mysql://scscf:heslo@server.net1.test/scscf")
+- change in ims_registrar_pcscf module reg_mod.c the string from 
+  str pcscf_uri = str_init("sip:pcscf.ims.smilecoms.com:4060");
+  to
+  str pcscf_uri = str_init("sip:pcscf.net1.test:4060");
+- and compile.
+- remaining problem: NOTIFY (reg) from S-CSCF to P-CSCF is rejected by P-CSCF with "SIP/2.0 404 Not here" caused by line 464
+  --> trace25.pcap
+  
+  	# Check for Subsequent requests:                                 
+  	if (has_totag()) {                                               
+  		# sequential request withing a dialog should                   
+  		# take the path determined by record-routing                   
+  		if (loose_route()) {                                           
+  			if ($route_uri =~ "sip:mo@.*") {                             
+  				setflag(FLT_MO);                                           
+  			}                                                            
+  			if(!isdsturiset()) {                                         
+  				handle_ruri_alias();                                       
+  			}                                                            
+  			# RTP-Relay, if necessary                                    
+  			route(RTPPROXY);                                             
+  			t_relay();                                                   
+  		} else {                                                       
+  			if ( is_method("ACK") ) {                                    
+  				if ( t_check_trans() ) {                                   
+  					# no loose-route, but stateful ACK;                      
+  					# must be an ACK after a 487                             
+  					# or e.g. 404 from upstream server                       
+  					t_relay();                                               
+  					exit;                                                    
+  				} else {                                                   
+  					# ACK without matching transaction ... ignore and discard
+  					exit;                                                    
+  				}                                                          
+  			}                                                            
+  			sl_send_reply("404","Not here");                             
+  		}                                                              
+  		exit;                                                          
+
+
+
+
+
+
+
+
+ToDo:
+
+For proper debugging and also staying attached to terminal, the -DD and children=1 is the best combination.
+(see E.mail thread "RFC: removing (disabling) fork=no"
+
+
+
+tcpdump -i any -s 3000 -w /var/tmp/trace.pcap not port 22 and not port 3306

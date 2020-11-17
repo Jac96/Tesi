@@ -1,0 +1,248 @@
+p ----------------------------------------------------------------
+root@server:~# kamailio -f /usr/local/etc/kamailio/kamailio-pcscf.cfg
+loading modules under config path: /usr/local/lib64/kamailio/modules/
+ 0(1476) INFO: <core> [sctp_core.c:75]: sctp_core_check_support(): SCTP API not enabled - if you want to use it, load sctp module
+Listening on
+             udp: server.net1.test [10.0.0.9]:4060
+Aliases:
+             *: pcscf.net1.test:*
+
+WARNING: no fork mode
+ 0(1476) INFO: rr [../outbound/api.h:54]: ob_load_api(): Failed to import bind_ob
+ 0(1476) INFO: rr [rr_mod.c:174]: mod_init(): outbound module not available
+ 0(1476) INFO: ims_usrloc_pcscf [hslot.c:62]: ul_init_locks(): locks array size 512
+ 0(1476) INFO: <core> [udp_server.c:150]: probe_max_receive_buffer(): SO_RCVBUF is initially 212992
+ 0(1476) INFO: <core> [udp_server.c:200]: probe_max_receive_buffer(): SO_RCVBUF is finally 425984
+ 0(1476) WARNING: ims_usrloc_pcscf [usrloc_db.c:59]: connect_db(): DB connection already open... continuing
+
+
+
+
+
+
+
+i ----------------------------------------------------------------
+root@server:~# kamailio -f /usr/local/etc/kamailio/kamailio-icscf.cfg
+loading modules under config path: /usr/local/lib64/kamailio/modules/
+ 0(1480) INFO: <core> [sctp_core.c:75]: sctp_core_check_support(): SCTP API not enabled - if you want to use it, load sctp module
+Listening on
+             udp: server.net1.test [10.0.0.9]:5060
+Aliases:
+             *: icscf.net1.test:*
+
+WARNING: no fork mode
+ 0(1480) INFO: rr [../outbound/api.h:54]: ob_load_api(): Failed to import bind_ob
+ 0(1480) INFO: rr [rr_mod.c:174]: mod_init(): outbound module not available
+ 0(1480) INFO: <core> [udp_server.c:150]: probe_max_receive_buffer(): SO_RCVBUF is initially 212992
+ 0(1480) INFO: <core> [udp_server.c:200]: probe_max_receive_buffer(): SO_RCVBUF is finally 425984
+ 0(1480) INFO: cdp [mod.c:227]: cdp_child_init(): CDiameterPeer child starting ...
+ 0(1480) INFO: cdp [mod.c:229]: cdp_child_init(): ... CDiameterPeer child started
+ 4(1485) INFO: cdp [worker.c:331]: worker_process(): [1] Worker process started...
+ 3(1484) INFO: cdp [worker.c:331]: worker_process(): [0] Worker process started...
+ 5(1486) INFO: cdp [worker.c:331]: worker_process(): [2] Worker process started...
+ 6(1487) INFO: cdp [worker.c:331]: worker_process(): [3] Worker process started...
+ 7(1488) INFO: cdp [receiver.c:445]: receiver_process(): receiver_process(): [] Receiver process doing init on new process...
+ 7(1488) INFO: cdp [receiver.c:450]: receiver_process(): receiver_process(): [] Receiver process starting up...
+ 8(1489) INFO: cdp [receiver.c:445]: receiver_process(): receiver_process(): [hss.net1.test] Receiver process doing init on new process...
+ 8(1489) INFO: cdp [receiver.c:183]: add_serviced_peer(): add_serviced_peer(): Adding serviced_peer_t to receiver for peer [hss.net1.test]
+ 8(1489) INFO: cdp [receiver.c:450]: receiver_process(): receiver_process(): [hss.net1.test] Receiver process starting up...
+ 9(1490) INFO: cdp [acceptor.c:82]: acceptor_process(): Acceptor process starting up...
+10(1491) INFO: cdp [timer.c:205]: timer_process(): Timer process starting up...
+ 9(1490) WARNING: cdp [tcp_accept.c:123]: create_socket(): create_socket(): Trying to open/bind/listen on 10.0.0.9 port 3869
+ 9(1490) WARNING: cdp [tcp_accept.c:148]: create_socket(): create_socket(): Successful socket open/bind/listen on 10.0.0.9 port 3869
+ 9(1490) INFO: cdp [acceptor.c:96]: acceptor_process(): Acceptor opened sockets. Entering accept loop ...
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 0
+10(1491) INFO: cdp [peerstatemachine.c:526]: I_Snd_Conn_Req(): I_Snd_Conn_Req(): Peer hss.net1.test
+10(1491) WARNING: cdp [receiver.c:864]: peer_connect(): peer_connect(): Trying to connect to 10.0.0.9 port 3868
+10(1491) INFO: cdp [receiver.c:932]: peer_connect(): peer_connect(): Peer hss.net1.test:3868 connected
+ 8(1489) ERROR: cdp [peerstatemachine.c:635]: I_Snd_CER(): I_Snd_CER(): Error on finding local host address > Socket operation on non-socket
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1491) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1491) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1491) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1491) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1491) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1491) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+
+
+
+
+
+s ----------------------------------------------------------------
+root@server:~# kamailio -f /usr/local/etc/kamailio/kamailio-scscf.cfg
+loading modules under config path: /usr/local/lib64/kamailio/modules/
+ 0(1494) INFO: <core> [sctp_core.c:75]: sctp_core_check_support(): SCTP API not enabled - if you want to use it, load sctp module
+Listening on
+             udp: server.net1.test [10.0.0.9]:6060
+Aliases:
+             *: scscf.net1.test:*
+
+WARNING: no fork mode
+ 0(1494) INFO: rr [../outbound/api.h:54]: ob_load_api(): Failed to import bind_ob
+ 0(1494) INFO: rr [rr_mod.c:174]: mod_init(): outbound module not available
+ 0(1494) INFO: ims_usrloc_scscf [hslot.c:69]: ul_init_locks(): locks array size 512
+ 0(1494) INFO: ims_usrloc_scscf [hslot_sp.c:67]: subs_init_locks(): locks array size 512
+ 0(1494) INFO: ims_usrloc_scscf [contact_hslot.c:67]: init_contacts_locks(): locks array size 512
+ 0(1494) INFO: <core> [udp_server.c:150]: probe_max_receive_buffer(): SO_RCVBUF is initially 212992
+ 0(1494) INFO: <core> [udp_server.c:200]: probe_max_receive_buffer(): SO_RCVBUF is finally 425984
+ 0(1494) INFO: cdp [mod.c:227]: cdp_child_init(): CDiameterPeer child starting ...
+ 0(1494) INFO: cdp [mod.c:229]: cdp_child_init(): ... CDiameterPeer child started
+ 8(1503) INFO: cdp [receiver.c:445]: receiver_process(): receiver_process(): [hss.net1.test] Receiver process doing init on new process...
+ 8(1503) INFO: cdp [receiver.c:183]: add_serviced_peer(): add_serviced_peer(): Adding serviced_peer_t to receiver for peer [hss.net1.test]
+ 8(1503) INFO: cdp [receiver.c:450]: receiver_process(): receiver_process(): [hss.net1.test] Receiver process starting up...
+ 5(1500) INFO: cdp [worker.c:331]: worker_process(): [2] Worker process started...
+ 3(1498) INFO: cdp [worker.c:331]: worker_process(): [0] Worker process started...
+ 4(1499) INFO: cdp [worker.c:331]: worker_process(): [1] Worker process started...
+ 7(1502) INFO: cdp [receiver.c:445]: receiver_process(): receiver_process(): [] Receiver process doing init on new process...
+ 6(1501) INFO: cdp [worker.c:331]: worker_process(): [3] Worker process started...
+ 7(1502) INFO: cdp [receiver.c:450]: receiver_process(): receiver_process(): [] Receiver process starting up...
+ 9(1504) INFO: cdp [acceptor.c:82]: acceptor_process(): Acceptor process starting up...
+ 9(1504) WARNING: cdp [tcp_accept.c:123]: create_socket(): create_socket(): Trying to open/bind/listen on 10.0.0.9 port 3870
+ 9(1504) WARNING: cdp [tcp_accept.c:148]: create_socket(): create_socket(): Successful socket open/bind/listen on 10.0.0.9 port 3870
+ 9(1504) INFO: cdp [acceptor.c:96]: acceptor_process(): Acceptor opened sockets. Entering accept loop ...
+10(1505) INFO: cdp [timer.c:205]: timer_process(): Timer process starting up...
+10(1505) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 0
+10(1505) INFO: cdp [peerstatemachine.c:526]: I_Snd_Conn_Req(): I_Snd_Conn_Req(): Peer hss.net1.test
+10(1505) WARNING: cdp [receiver.c:864]: peer_connect(): peer_connect(): Trying to connect to 10.0.0.9 port 3868
+10(1505) INFO: cdp [receiver.c:932]: peer_connect(): peer_connect(): Peer hss.net1.test:3868 connected
+ 8(1503) ERROR: cdp [peerstatemachine.c:635]: I_Snd_CER(): I_Snd_CER(): Error on finding local host address > Socket operation on non-socket
+10(1505) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1505) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1505) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1505) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1505) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1505) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+10(1505) INFO: cdp [peermanager.c:280]: peer_timer(): peer_timer(): Peer hss.net1.test  State 6
+10(1505) WARNING: cdp [peermanager.c:315]: peer_timer(): Inactivity on peer [hss.net1.test], sending DWR... - if we don't get a reply, the peer will be closed
+
+
+
+
+
+h ----------------------------------------------------------------
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue Jan  5 12:49:55 2016
+root@server:~# screen
+2016-01-05 15:53:53,928 WARN  org.apache.catalina.connector.MapperListener - registerEngine Unknown default host: 10.0.0.9
+2016-01-05 15:53:55,404 INFO  de.fhg.fokus.hss.web.servlet.ResponseFilter - init Response Filter Initialisation!
+2016-01-05 15:53:56,137 INFO  de.fhg.fokus.hss.main.TomcatServer - startTomcat WebConsole of FHoSS was started !
+2016-01-05 15:53:59,476 WARN  org.hibernate.impl.SessionFactoryObjectFactory - addInstance InitialContext did not implement EventContext
+2016-01-05 15:53:59,637 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - <init> Bean style constructor called, don't forget to configure!
+2016-01-05 15:53:59,656 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure FQDN: hss.net1.test
+2016-01-05 15:53:59,658 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure Realm: net1.test
+2016-01-05 15:53:59,660 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure Vendor_ID : 10415
+2016-01-05 15:53:59,662 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure Product Name: JavaDiameterPeer
+2016-01-05 15:53:59,663 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure AcceptUnknwonPeers: true
+2016-01-05 15:53:59,664 INFO  de.fhg.fokus.diameter.DiameterPeer.DiameterPeer - configure DropUnknownOnDisconnect: true
+2016-01-05 15:53:59,711 INFO  de.fhg.fokus.hss.main.HSSContainer - waitForExit
+Type "exit" to stop FHoSS!
+2016-01-05 15:53:59,724 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:53:59,727 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:54:29,760 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:54:29,763 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:54:59,789 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:54:59,792 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:55:29,823 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:55:29,827 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:55:59,850 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:55:59,853 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:56:29,883 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:56:29,887 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:56:59,918 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:56:59,929 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+2016-01-05 15:57:29,967 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer icscf.net1.test:3869 not responding to connection attempt
+2016-01-05 15:57:29,970 ERROR de.fhg.fokus.diameter.DiameterPeer.peer.StateMachine - I_Snd_Conn_Req StateMachine: Peer scscf.net1.test:3870 not responding to connection attempt
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+p -----------------------------------------
+root@server:~# kamailio -f /usr/local/etc/kamailio/kamailio-pcscf.cfg
+loading modules under config path: /usr/local/lib64/kamailio/modules/
+ 0(1582) INFO: <core> [sctp_core.c:75]: sctp_core_check_support(): SCTP API not enabled - if you want to use it, load sctp module
+Listening on
+             udp: server.net1.test [10.0.0.9]:4060
+Aliases:
+             *: pcscf.net1.test:*
+
+WARNING: no fork mode
+ 0(1582) INFO: rr [../outbound/api.h:54]: ob_load_api(): Failed to import bind_ob
+ 0(1582) INFO: rr [rr_mod.c:174]: mod_init(): outbound module not available
+ 0(1582) INFO: ims_usrloc_pcscf [hslot.c:62]: ul_init_locks(): locks array size 512
+ 0(1582) INFO: <core> [udp_server.c:150]: probe_max_receive_buffer(): SO_RCVBUF is initially 212992
+ 0(1582) INFO: <core> [udp_server.c:200]: probe_max_receive_buffer(): SO_RCVBUF is finally 425984
+ 0(1582) WARNING: ims_usrloc_pcscf [usrloc_db.c:59]: connect_db(): DB connection already open... continuing
+ 0(1582) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1582) ERROR: <script>: REGISTER (sip:alice@net1.test (10.0.0.10:62270) to sip:alice@net1.test, M-ea74398c9e74adc886958ffb4fe14527)
+ 0(1582) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1582) ERROR: <script>: REGISTER (sip:alice@net1.test (10.0.0.10:62270) to sip:alice@net1.test, M-ea74398c9e74adc886958ffb4fe14527)
+ 0(1582) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1582) ERROR: <script>: SUBSCRIBE (sip:alice@net1.test (10.0.0.10:62270) to sip:alice@net1.test, M-76f5bb26c162213494ae1af92eae6800)
+ 0(1582) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1582) ERROR: <script>: SUBSCRIBE (sip:alice@net1.test (10.0.0.10:62270) to sip:alice@net1.test, M-553d4f099745e3b6802aa0dea81b26a8)
+ 0(1582) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1582) ERROR: <script>: NOTIFY (sip:alice@net1.test (10.0.0.9:6060) to sip:alice@net1.test, M-76f5bb26c162213494ae1af92eae6800)
+
+i----------------------------------------------
+ 0(1588) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1588) ERROR: <script>: REGISTER (sip:bob@net1.test (10.0.0.9:4060) to sip:bob@net1.test, 9b9dffab-bfc8-a214-b2c8-041727b72514)
+ 0(1588) INFO: ims_icscf [cxdx_uar.c:71]: create_uaa_return_code(): created AVP successfully : [uaa_return_code]
+ 4(1593) INFO: ims_icscf [cxdx_avp.c:137]: cxdx_get_avp(): cxdx_get_server_name: Failed finding avp
+ 4(1593) INFO: ims_icscf [cxdx_avp.c:137]: cxdx_get_avp(): cxdx_get_result_code: Failed finding avp
+ 4(1593) INFO: ims_icscf [cxdx_uar.c:71]: create_uaa_return_code(): created AVP successfully : [uaa_return_code]
+ 0(1588) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1588) ERROR: <script>: REGISTER (sip:bob@net1.test (10.0.0.9:4060) to sip:bob@net1.test, 9b9dffab-bfc8-a214-b2c8-041727b72514)
+ 0(1588) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1588) ERROR: <script>: SUBSCRIBE (sip:bob@net1.test (10.0.0.9:6060) to sip:bob@net1.test, 77530209-dd3b-dc99-3fb8-7a114143de9e)
+ 0(1588) INFO: ims_icscf [cxdx_lir.c:74]: create_lia_return_code(): created AVP successfully : [lia_return_code]
+ 5(1594) INFO: ims_icscf [cxdx_avp.c:137]: cxdx_get_avp(): cxdx_get_experimental_result_code: Failed finding avp
+ 5(1594) INFO: ims_icscf [cxdx_lir.c:74]: create_lia_return_code(): created AVP successfully : [lia_return_code]
+
+s ---------------------------------------------
+ 4(1607) INFO: ims_auth [cxdx_mar.c:81]: create_return_code(): created AVP successfully : [maa_return_code] - [1]
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: ims_auth [authorize.c:824]: authenticate(): uri=sip:net1.test nonce=V9yR0KU2bXU+HVl99GUwTCw7g7k9cwAAlfWYZtE+Pmw= response=ee4be6a1fe203699df1dc88337dcd46d qop=auth-int nc=00000001 cnonce=4c30b975f6f88e7751e2ab518b9787e2 hbody=d41d8cd98f00b204e9800998ecf8427e
+ 0(1602) INFO: ims_auth [authorize.c:872]: authenticate(): UE said: ee4be6a1fe203699df1dc88337dcd46d and we expect ee4be6a1fe203699df1dc88337dcd46d ha1 14ff885a7840e0c9cd00d0bac287b508 (REGISTER)
+ 0(1602) ERROR: <script>: Not REGISTERED
+ 0(1602) INFO: ims_registrar_scscf [cxdx_sar.c:83]: create_return_code(): created AVP successfully : [saa_return_code] - [-2]
+ 3(1606) INFO: ims_registrar_scscf [cxdx_avp.c:138]: cxdx_get_avp(): cxdx_get_experimental_result_code: Failed finding avp
+ 3(1606) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 3(1606) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 3(1606) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 3(1606) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 3(1606) INFO: ims_registrar_scscf [cxdx_sar.c:83]: create_return_code(): created AVP successfully : [saa_return_code] - [1]
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: ims_isc [mod.c:233]: isc_match_filter(): Checking triggers
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: ims_auth [cxdx_mar.c:81]: create_return_code(): created AVP successfully : [maa_return_code] - [-2]
+ 6(1609) INFO: ims_auth [cxdx_avp.c:139]: cxdx_get_avp(): cxdx_get_experimental_result_code: Failed finding avp (avp_code = 297, vendor_id = 0)
+ 6(1609) INFO: ims_auth [cxdx_mar.c:81]: create_return_code(): created AVP successfully : [maa_return_code] - [1]
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: ims_auth [authorize.c:824]: authenticate(): uri=sip:net1.test nonce=+rG97s/K55W/jV73vbSPDpTZn0uE0QAAq0dyDqedMt8= response=6212c5af3d6e530b080f52a22680b9b2 qop=auth-int nc=00000001 cnonce=93b6e41968e521011dba3b53c04a05c1 hbody=d41d8cd98f00b204e9800998ecf8427e
+ 0(1602) INFO: ims_auth [authorize.c:872]: authenticate(): UE said: 6212c5af3d6e530b080f52a22680b9b2 and we expect 6212c5af3d6e530b080f52a22680b9b2 ha1 af46fe57c673611b97e7aec96d1677c4 (REGISTER)
+ 0(1602) ERROR: <script>: Not REGISTERED
+ 0(1602) INFO: ims_registrar_scscf [cxdx_sar.c:83]: create_return_code(): created AVP successfully : [saa_return_code] - [-2]
+ 5(1608) INFO: ims_registrar_scscf [cxdx_avp.c:138]: cxdx_get_avp(): cxdx_get_experimental_result_code: Failed finding avp
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:717]: shm_str_dup(): shm_str_dup fallback; dup called for src->s == NULL or src->len < 0
+ 5(1608) WARNING: ims_usrloc_scscf [../../modules/tm/../../ut.h:731]: shm_str_dup(): shm_str_dup fallback; skip memcpy for src->s == NULL
+ 5(1608) INFO: ims_registrar_scscf [cxdx_sar.c:83]: create_return_code(): created AVP successfully : [saa_return_code] - [1]
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx 0(1602) INFO: ims_isc [mod.c:233]: isc_match_filter(): Checking triggers
+ 0(1602) INFO: <script>: %CybFE: %cs %rm %ru from %si:%sp From: %fu  To: %tu
+%Cxx

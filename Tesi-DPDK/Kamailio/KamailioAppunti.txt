@@ -1,0 +1,17 @@
+Kamailio uses the SIP (session initialitation protocol) for session management.
+This session management is implemented in three Call Session Control Functions(CSCF):
+-the Proxy-CSCF
+-the Interrogating-CSCF
+-the Serving CSCF
+
+These CSCFs interact with a number of different elements:
+-the Home Subscriber Server (HSS) for authentication
+-a Policy and Charging Rules Function (PCRF) for network authorization and 
+ policy control
+-an Online Charging Server (OCS)
+-an Offline Charging Server (OFCS) for charging
+
+These interactions are facilitated by the Diameter protocol; Diameter is a flexible
+protocol based on Attribute Value Pairs (AVP) - applications ranging from authentication,
+authorization and charging can be built by extending the base protocol.
+

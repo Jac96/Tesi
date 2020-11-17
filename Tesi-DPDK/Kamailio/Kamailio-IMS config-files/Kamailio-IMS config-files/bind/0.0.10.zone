@@ -1,0 +1,17 @@
+$TTL	86400
+@       IN      SOA     server. root.net2.test  (
+                                      2010081401   ; Serial YYYYMMDDXX
+                                      28800        ; Refresh
+                                      14400        ; Retry
+                                      3600000      ; Expire
+                                      86400 )      ; Minimum
+
+			IN      NS      server.net1.test.
+
+10	 	IN      PTR     notebook.net1.test.
+
+9	 		IN      PTR     server.net1.test.
+7	 		IN      PTR     server.net2.test.
+
+
+
