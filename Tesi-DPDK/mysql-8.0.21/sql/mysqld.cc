@@ -6514,7 +6514,7 @@ int mysqld_main(int argc, char **argv)
   */
 
   // Default configuration for local program
-  server_conf.bst_size = 1;
+  server_conf.bst_size = DEFAULT_BST_SIZE;
   server_conf.local_port = SERVER_PORT;
   server_conf.remote_port = CLIENT_PORT;
   strcpy(server_conf.local_ip, SERVER_ADDR_IP);

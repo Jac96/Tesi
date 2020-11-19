@@ -992,6 +992,8 @@ static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
 
     size_t sentcnt = vio_write(net->vio, buf, count);
 
+    fwrite(buf, count, 1, stdout);
+
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (sentcnt == VIO_SOCKET_ERROR) {
       /* A recoverable I/O error occurred? */
@@ -1345,6 +1347,8 @@ static bool net_read_raw_loop(NET *net, size_t count) {
   while (count) {
     size_t recvcnt = vio_read(net->vio, buf, count);
 
+    //fwrite(buf, count, 1, stdout);
+
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (recvcnt == VIO_SOCKET_ERROR) {
       /* A recoverable I/O error occurred? */
@@ -1365,6 +1369,7 @@ static bool net_read_raw_loop(NET *net, size_t count) {
     thd_increment_bytes_received(recvcnt);
 #endif
   }
+
 
   /* On failure, propagate the error code. */
   if (count) {
@@ -2010,7 +2015,6 @@ static net_async_status net_read_uncompressed_nonblocking(NET *net,
 */
 
 static size_t net_read_packet(NET *net, size_t *complen) {
-  //DPDK
   size_t pkt_len, pkt_data_len;
 
   *complen = 0;
@@ -2023,6 +2027,7 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   net->compress_pkt_nr = net->pkt_nr;
 
   if (net->compress) {
+
     /*
       The right-hand expression
       must match the size of the buffer allocated in net_realloc().
@@ -2052,9 +2057,12 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   /* Read the packet data (payload). */
   if (net_read_raw_loop(net, pkt_len)) goto error;
 
+  fwrite(net->buff + net->where_b, 78, 1, stdout);
+
 end:
   DBUG_DUMP("net read", net->buff + net->where_b, pkt_len);
   net->reading_or_writing = 0;
+
   return pkt_len;
 
 error:

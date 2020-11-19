@@ -100,9 +100,6 @@
 
 #include "sql-common/net_ns.h"
 
-//DPDK
-//struct config client_conf = {};
-
 
 using std::max;
 using std::min;

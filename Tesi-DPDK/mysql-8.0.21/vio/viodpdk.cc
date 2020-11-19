@@ -105,40 +105,6 @@ void config_print(struct config *conf) {
     printf("-------------------------------------\n");
 }
 
-/**
- * Get the appropriate amount of cache size for the given number of buffers.
- *
- * The cache size must be:
- * \li a divisor of the number of buffers;
- * \li smaller than CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE.
- *
- * \param n_mbufs is the number of buffers.
- *
- * \return the size of the cache.
- * */
-int get_cache_size(uint_t n_mbufs) {
-    /*
-     * Idea behind this loop: the biggest divisor is equal to N / the smallest
-     * divisor. However, the biggest divisor may be very big, so we keep
-     * iterating until we find the biggest divisor that is also smaller than
-     * CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE.
-     * */
-    uint_t s_divisor = 1;
-    uint_t b_divisor = n_mbufs;
-    do {
-        do {
-            ++s_divisor;
-            /* Iterate over odds number only after checking 2 */
-        } while ((n_mbufs % s_divisor != 0) &&
-                 (!(s_divisor & 0x1) || s_divisor == 2));
-
-        b_divisor = n_mbufs / s_divisor;
-    } while (b_divisor > 512);
-    /* CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE=512 [from DPDK configuration file] */
-
-    return b_divisor;
-}
-
 /* ---------------------------- Public Functions ---------------------------- */
 
 /**
@@ -180,23 +146,39 @@ int dpdk_init(struct config *conf) {
     }
 
     /* Get the number of desired buffers and descriptors */
-    n_mbufs = RTE_MAX(
-        (rx_ring_descriptors + tx_ring_descriptors + conf->bst_size + 512),
-        8192U * 2);
+    n_mbufs = RTE_MAX((rx_ring_descriptors + tx_ring_descriptors + conf->bst_size + 512), 8192U * 2);
 
     /* Set it to an even number (easier to determine cache size) */
     if (n_mbufs & 0x01)
         ++n_mbufs;
 
-    /* Create the appropriate pool of buffers in hugepages memory. */
-    conf->dpdk.mbufs =
-       rte_pktmbuf_pool_create("mbuf_pool", n_mbufs, get_cache_size(n_mbufs),
-                                0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
 
+    // FINDING THE BIGGEST DIVISOR UNDER CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE
+    uint_t s_divisor = 1;
+    uint_t b_divisor = n_mbufs;
+    do
+    {
+        do
+        {
+            ++s_divisor;
+            // Iterate over odds number only after checking 2
+        } while ((n_mbufs % s_divisor != 0) && (!(s_divisor & 0x1) || s_divisor == 2));
 
-    if (conf->dpdk.mbufs == NULL) {
-        PRINT_DPDK_ERROR("Unable to allocate mbufs: %s.\n",
-                         rte_strerror(rte_errno));
+        b_divisor = n_mbufs / s_divisor;
+    } while (b_divisor > 512); // CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE=512 in DPDK configuration file
+    uint_t cache_size = b_divisor;
+
+    conf->dpdk.mbufs = rte_pktmbuf_pool_create(
+        "mbuf_pool",
+        n_mbufs,
+        cache_size,
+        0,
+        RTE_MBUF_DEFAULT_BUF_SIZE,
+        rte_socket_id());
+
+    if (conf->dpdk.mbufs == NULL)
+    {
+        PRINT_DPDK_ERROR("Unable to allocate mbufs: %s.\n", rte_strerror(rte_errno));
         return -1;
     }
 
@@ -280,59 +262,6 @@ int dpdk_init(struct config *conf) {
     return 0;
 }
 
-/*static inline void consume_data(byte_t *payload_v, uchar *buf, size_t size)
-{
-    bool checksum_valid = check_checksum(payload_v, size);
-
-    if (!checksum_valid)
-    {
-        fprintf(stderr, "ERROR: received message checksum is not correct!\n");
-    }
-
-    uchar* payload = (uchar *)payload_v;
-    //memcpy((void *)buf, payload_v, size);
-}
-
-static inline void dpdk_consume_data_offset(struct rte_mbuf *pkt,
-					    ssize_t offset,
-					    uchar* buf,
-					    size_t size)
-{
-    consume_data(dpdk_pkt_offset(pkt, uchar*, offset), buf, size);
-}*/
-
-size_t vio_dpdk_read(Vio *vio, uchar *buf, size_t size) {
-
-    DBUG_TRACE;
-
-    int res;
-    const size_t data_offset = OFFSET_DATA;
-    struct rte_eth_stats stats;
-    struct rte_mbuf *pkts_burst[1];
-    size_t pkts_rx;
-
-    //vio->dpdk_config.pkt_size = size;
-
-    while(pkts_rx == 0){
-      pkts_rx = rte_eth_rx_burst(vio->dpdk_config.dpdk.portid, 0, pkts_burst, 1);
-      printf("PACCHETTI RICEVUTI: %lu\n\n", pkts_rx);
-      res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-      if (res == 0) printf("OK stats\n");
-      printf("ipackets: %lu\n", stats.ipackets);
-      printf("opackets: %lu\n", stats.opackets);
-      printf("ibytes: %lu\n", stats.ibytes);
-      printf("obytes: %lu\n", stats.obytes);
-      printf("imissed: %lu\n", stats.imissed);
-      printf("ierrors: %lu\n", stats.ierrors);
-      printf("oerrors: %lu\n", stats.oerrors);
-      printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-    }
-    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkts_burst[0], uchar *, data_offset), size);
-    printf("PKTS_RX: %lu %lu\n\n", pkts_rx, size);
-    rte_pktmbuf_free(pkts_burst[0]);
-    return pkts_rx * size;
-}
-
 void dpdk_pkt_prepare(struct rte_mbuf *pkt,
                                     struct config *conf,
                                     struct rte_ether_hdr *pkt_eth_hdr,
@@ -370,7 +299,6 @@ void dpdk_pkt_prepare(struct rte_mbuf *pkt,
     pkt->l3_len = sizeof(struct rte_ipv4_hdr);
 }
 
-
 // Setting up ETH, IP and UDP headers for later use
 void dpdk_setup_pkt_headers(
     struct rte_ether_hdr *eth_hdr,
@@ -383,8 +311,8 @@ void dpdk_setup_pkt_headers(
                                                         sizeof(struct rte_ipv4_hdr) +
                                                         sizeof(struct rte_udp_hdr)));
 
-    printf("PAYLOAD LEN: %d \n", payload_len);
     // Initialize ETH header
+    //pkt_len = (uint16_t)(payload_len + sizeof(struct rte_ether_hdr));
     rte_ether_addr_copy((struct rte_ether_addr *)conf->local_mac, &eth_hdr->s_addr);
     rte_ether_addr_copy((struct rte_ether_addr *)conf->remote_mac, &eth_hdr->d_addr);
     eth_hdr->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
@@ -395,8 +323,8 @@ void dpdk_setup_pkt_headers(
     udp_hdr->dst_port = rte_cpu_to_be_16(conf->remote_port);
     udp_hdr->dgram_len = rte_cpu_to_be_16(pkt_len);
     udp_hdr->dgram_cksum = 0; /* No UDP checksum. */
-
-    // Initialize IP header
+ 
+   // Initialize IP header
     pkt_len = (uint16_t)(pkt_len + sizeof(struct rte_ipv4_hdr));
     ip_hdr->version_ihl = IP_VERSION_HDRLEN;
     ip_hdr->type_of_service = 0;
@@ -411,18 +339,40 @@ void dpdk_setup_pkt_headers(
     ip_hdr->hdr_checksum = dpdk_calc_ipv4_checksum(ip_hdr);
 }
 
-static inline void produce_data(void *payload_v, const uchar *buf, size_t size) {
 
-    rte_memcpy(payload_v, (const void*)buf, size);
+size_t vio_dpdk_read(Vio *vio, uchar *buf, size_t size) {
 
-}
+    DBUG_TRACE;
+    
+    struct rte_eth_stats stats;
+    int res = 0;
+    const size_t data_offset = OFFSET_DATA;
+    struct rte_mbuf *pkt;
+    size_t pkts_rx = 0;
 
-static inline void dpdk_produce_data_offset(struct rte_mbuf *pkt,
-				            ssize_t offset,
-					    const uchar* buf,
-					    size_t size)
-{
-    produce_data(dpdk_pkt_offset(pkt, uchar*, offset), buf, size);
+    config_print(&vio->dpdk_config);
+    sleep(3);
+
+    while(pkts_rx == 0){
+      pkts_rx = rte_eth_rx_burst(vio->dpdk_config.dpdk.portid,
+				 0,
+				 &pkt,
+				 1);
+      printf("\nPACCHETTI RICEVUTI: %lu\n", pkts_rx);
+      res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
+      if (res == 0) printf("OK stats\n");
+      printf("ipackets: %lu\n", stats.ipackets);
+      printf("opackets: %lu\n", stats.opackets);
+      printf("ibytes: %lu\n", stats.ibytes);
+      printf("obytes: %lu\n", stats.obytes);
+      printf("imissed: %lu\n", stats.imissed);
+      printf("ierrors: %lu\n", stats.ierrors);
+      printf("oerrors: %lu\n", stats.oerrors);
+      printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
+    }
+    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset - 15), size);
+    rte_pktmbuf_free(pkt);
+    return size;
 }
 
 size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
@@ -435,11 +385,10 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     struct rte_ether_hdr pkt_eth_hdr;
     struct rte_ipv4_hdr pkt_ip_hdr;
     struct rte_udp_hdr pkt_udp_hdr;
-    struct rte_mbuf *pkts_burst[1];
     struct rte_mbuf* pkt;
     size_t pkts_tx;
 
-    vio->dpdk_config.pkt_size = size + data_offset;
+    vio->dpdk_config.pkt_size = data_offset + 4;
 
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, &vio->dpdk_config);
     pkt = rte_mbuf_raw_alloc(vio->dpdk_config.dpdk.mbufs);
@@ -452,9 +401,11 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     }
 
     dpdk_pkt_prepare(pkt, &vio->dpdk_config, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    rte_memcpy(rte_pktmbuf_mtod(pkt, uchar*), buf, size);
-    pkts_burst[0] = pkt;
-    pkts_tx = rte_eth_tx_burst(vio->dpdk_config.dpdk.portid, 0, pkts_burst, 1);
+    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf, 4);
+    pkts_tx = rte_eth_tx_burst(vio->dpdk_config.dpdk.portid,
+			       0,
+			       &pkt,
+			       1);
     printf("\nPACKET SENT: %lu\n", pkts_tx);
     res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
     if (res == 0) printf("OK stats\n");
@@ -466,9 +417,42 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     printf("ierrors: %lu\n", stats.ierrors);
     printf("oerrors: %lu\n", stats.oerrors);
     printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-    rte_pktmbuf_free(pkts_burst[0]);
+
+    rte_pktmbuf_free(pkt);
 
     sleep(3);
 
-    return pkts_tx * size;
+    vio->dpdk_config.pkt_size = data_offset + size - 4;
+
+    dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, &vio->dpdk_config);
+    pkt = rte_mbuf_raw_alloc(vio->dpdk_config.dpdk.mbufs);
+
+    if (unlikely(pkt == NULL))
+    {
+        fprintf(
+            stderr,
+            "WARN: Could not allocate a buffer, using less packets than required burst size!\n");
+    }
+
+    dpdk_pkt_prepare(pkt, &vio->dpdk_config, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
+    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset + 4), (char*)buf + 4, size - 4);
+    pkts_tx = rte_eth_tx_burst(vio->dpdk_config.dpdk.portid,
+                               0,
+                               &pkt,
+                               1);
+    printf("\nPACKET SENT: %lu\n", pkts_tx);
+    res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
+    if (res == 0) printf("OK stats\n");
+    printf("ipackets: %lu\n", stats.ipackets);
+    printf("opackets: %lu\n", stats.opackets);
+    printf("ibytes: %lu\n", stats.ibytes);
+    printf("obytes: %lu\n", stats.obytes);
+    printf("imissed: %lu\n", stats.imissed);
+    printf("ierrors: %lu\n", stats.ierrors);
+    printf("oerrors: %lu\n", stats.oerrors);
+    printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
+    
+    rte_pktmbuf_free(pkt);
+
+    return size;
 }

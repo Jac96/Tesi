@@ -5814,7 +5814,7 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
     struct config client_conf = {};
 
     // Default configuration for local program
-    client_conf.bst_size = 1;
+    client_conf.bst_size = DEFAULT_BST_SIZE;
     client_conf.local_port = CLIENT_PORT;
     client_conf.remote_port = SERVER_PORT;
     strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
@@ -5827,7 +5827,6 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
     if (res < 0) {
         printf("BAD DPDK INITIALIZATION!!\n");
     }
-
 
     net->vio->dpdk_config = client_conf;
 
