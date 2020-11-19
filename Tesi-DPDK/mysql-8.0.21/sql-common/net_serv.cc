@@ -425,8 +425,6 @@ static bool net_should_retry(NET *net,
 bool my_net_write(NET *net, const uchar *packet, size_t len) {
   uchar buff[NET_HEADER_SIZE];
 
-  printf("WRITE: \n");
-
   DBUG_DUMP("net write", packet, len);
 
   if (unlikely(!net->vio)){ /* nowhere to write */
@@ -986,13 +984,9 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
 
-  printf("DA SCRIVERE %lu \n", count);
-
   while (count) {
 
     size_t sentcnt = vio_write(net->vio, buf, count);
-
-    fwrite(buf, count, 1, stdout);
 
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (sentcnt == VIO_SOCKET_ERROR) {
@@ -1338,16 +1332,12 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
 static bool net_read_raw_loop(NET *net, size_t count) {
   DBUG_TRACE;
 
-  printf("DA LEGGERE: %lu \n", count);
-
   bool eof = false;
   unsigned int retry_count = 0;
   uchar *buf = net->buff + net->where_b;
 
   while (count) {
     size_t recvcnt = vio_read(net->vio, buf, count);
-
-    //fwrite(buf, count, 1, stdout);
 
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (recvcnt == VIO_SOCKET_ERROR) {
@@ -2057,7 +2047,6 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   /* Read the packet data (payload). */
   if (net_read_raw_loop(net, pkt_len)) goto error;
 
-  fwrite(net->buff + net->where_b, 78, 1, stdout);
 
 end:
   DBUG_DUMP("net read", net->buff + net->where_b, pkt_len);
@@ -2172,7 +2161,6 @@ static void net_read_compressed_packet(NET *net, size_t &len) {
 ulong my_net_read(NET *net) {
   size_t len;
   /* turn off non blocking operations */
-  printf("READ: \n");
 
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 

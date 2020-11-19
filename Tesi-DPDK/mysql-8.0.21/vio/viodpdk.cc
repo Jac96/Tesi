@@ -124,7 +124,7 @@ int dpdk_init(struct config *conf) {
 
     int res;
 
-    config_print(conf);
+//    config_print(conf);
 
     uint_t ports;   /* Number of ports available, must be equal to 1 for this
                        application if DPDK is used. */
@@ -350,27 +350,16 @@ size_t vio_dpdk_read(Vio *vio, uchar *buf, size_t size) {
     struct rte_mbuf *pkt;
     size_t pkts_rx = 0;
 
-    config_print(&vio->dpdk_config);
-    sleep(3);
+//    config_print(&vio->dpdk_config);
 
     while(pkts_rx == 0){
       pkts_rx = rte_eth_rx_burst(vio->dpdk_config.dpdk.portid,
 				 0,
 				 &pkt,
 				 1);
-      printf("\nPACCHETTI RICEVUTI: %lu\n", pkts_rx);
-      res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-      if (res == 0) printf("OK stats\n");
-      printf("ipackets: %lu\n", stats.ipackets);
-      printf("opackets: %lu\n", stats.opackets);
-      printf("ibytes: %lu\n", stats.ibytes);
-      printf("obytes: %lu\n", stats.obytes);
-      printf("imissed: %lu\n", stats.imissed);
-      printf("ierrors: %lu\n", stats.ierrors);
-      printf("oerrors: %lu\n", stats.oerrors);
-      printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
     }
-    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset - 15), size);
+    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), size);
+
     rte_pktmbuf_free(pkt);
     return size;
 }
@@ -406,21 +395,7 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
 			       0,
 			       &pkt,
 			       1);
-    printf("\nPACKET SENT: %lu\n", pkts_tx);
-    res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-    if (res == 0) printf("OK stats\n");
-    printf("ipackets: %lu\n", stats.ipackets);
-    printf("opackets: %lu\n", stats.opackets);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
-    printf("imissed: %lu\n", stats.imissed);
-    printf("ierrors: %lu\n", stats.ierrors);
-    printf("oerrors: %lu\n", stats.oerrors);
-    printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-
     rte_pktmbuf_free(pkt);
-
-    sleep(3);
 
     vio->dpdk_config.pkt_size = data_offset + size - 4;
 
@@ -435,23 +410,11 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     }
 
     dpdk_pkt_prepare(pkt, &vio->dpdk_config, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset + 4), (char*)buf + 4, size - 4);
+    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), (char*)buf + 4, size - 4);
     pkts_tx = rte_eth_tx_burst(vio->dpdk_config.dpdk.portid,
                                0,
                                &pkt,
                                1);
-    printf("\nPACKET SENT: %lu\n", pkts_tx);
-    res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-    if (res == 0) printf("OK stats\n");
-    printf("ipackets: %lu\n", stats.ipackets);
-    printf("opackets: %lu\n", stats.opackets);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
-    printf("imissed: %lu\n", stats.imissed);
-    printf("ierrors: %lu\n", stats.ierrors);
-    printf("oerrors: %lu\n", stats.oerrors);
-    printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-    
     rte_pktmbuf_free(pkt);
 
     return size;
