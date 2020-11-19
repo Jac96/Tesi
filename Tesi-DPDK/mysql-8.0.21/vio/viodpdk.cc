@@ -1,4 +1,3 @@
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -49,91 +48,6 @@
  * */
 
 struct rte_eth_conf PORT_CONF_INIT = {};
-
-/**
- * Construct a MAC address from the given string.
- *
- * \return 0 on success, -1 otherwise.
- * */
-int addr_mac_set(struct sockaddr_ll *addr, const char *str,
-                               const char *ifname) {
-    memset(addr, 0, sizeof(struct sockaddr_ll));
-    addr->sll_family = AF_PACKET;
-    addr->sll_protocol = htons(ETH_P_ALL);
-    addr->sll_ifindex = (ifname == NULL) ? 0 : if_nametoindex(ifname);
-    addr->sll_halen = sizeof(
-        addr->sll_addr); // TODO: check if it's right, otherwise just put 6 here
-
-    int res;
-
-    res = sscanf(str, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", addr->sll_addr + 0,
-                 addr->sll_addr + 1, addr->sll_addr + 2, addr->sll_addr + 3,
-                 addr->sll_addr + 4, addr->sll_addr + 5);
-
-    if (res != 6) {
-        memset(addr, 0, 6);
-        return -1;
-    }
-
-    return 0;
-}
-
-/**
- * Construct an IPv4 address from the given string.
- *
- * \return 0 on success, an error code otherwise.
- * */
-static int addr_ip_set(struct sockaddr_in *addr, const char *str) {
-    int res;
-
-    addr->sin_family = AF_INET;
-    res = inet_aton(str, &addr->sin_addr);
-    if (res == 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-/**
- * Set the port number of the given address.
- * */
-static void addr_port_number_set(struct sockaddr_in *addr, int port) {
-    addr->sin_port = htons(port);
-}
-
-#define dpdk_pkt_offset(pkt, t, offset) \
-    rte_pktmbuf_mtod_offset(pkt, t, offset)
-
-static inline void produce_data(const void *payload_v, const uchar *buf, size_t size) {
-
-    //const uchar *payload = (const uchar *)payload_v;
-    memcpy((void *)buf, payload_v, size);
-
-}
-
-static inline void dpdk_produce_data_offset(struct rte_mbuf *pkt, ssize_t offset, const uchar* buf, size_t size)
-{
-    produce_data(dpdk_pkt_offset(pkt, rte_mbuf*, offset), buf, size);
-}
-
-static inline void consume_data(const void *payload_v, uchar *buf, size_t size)
-{
-    /*bool checksum_valid = check_checksum(data, len);
-
-    if (!checksum_valid)
-    {
-        fprintf(stderr, "ERROR: received message checksum is not correct!\n");
-    }*/
-
-    //uchar* payload = (uchar *)payload_v;
-    memcpy((void *)buf, payload_v, size);    
-}
-
-static inline void dpdk_consume_data_offset(struct rte_mbuf *pkt, ssize_t offset, uchar* buf, size_t size)
-{
-    consume_data(dpdk_pkt_offset(pkt, rte_mbuf*, offset), buf, size);
-}
 
 static inline uint16_t dpdk_calc_ipv4_checksum(struct rte_ipv4_hdr *ip_hdr)
 {
@@ -189,46 +103,6 @@ void config_print(struct config *conf) {
     //printf("conf->dpdk.mbuf: %s\n", conf->dpdk.mbuf);
 
     printf("-------------------------------------\n");
-}
-
-
-// Setting up ETH, IP and UDP headers for later use
-void dpdk_setup_pkt_headers(
-    struct rte_ether_hdr *eth_hdr,
-    struct rte_ipv4_hdr *ip_hdr,
-    struct rte_udp_hdr *udp_hdr,
-    struct config *conf)
-{
-    uint16_t pkt_len;
-    uint16_t payload_len = (uint16_t)(conf->pkt_size - (sizeof(struct rte_ether_hdr) +
-                                                        sizeof(struct rte_ipv4_hdr) +
-                                                        sizeof(struct rte_udp_hdr)));
-
-    // Initialize ETH header
-    rte_ether_addr_copy((struct rte_ether_addr *)conf->local_mac, &eth_hdr->s_addr);
-    rte_ether_addr_copy((struct rte_ether_addr *)conf->remote_mac, &eth_hdr->d_addr);
-    eth_hdr->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
-
-    // Initialize UDP header
-    pkt_len = (uint16_t)(payload_len + sizeof(struct rte_udp_hdr));
-    udp_hdr->src_port = rte_cpu_to_be_16(conf->local_port);
-    udp_hdr->dst_port = rte_cpu_to_be_16(conf->remote_port);
-    udp_hdr->dgram_len = rte_cpu_to_be_16(pkt_len);
-    udp_hdr->dgram_cksum = 0; /* No UDP checksum. */
-
-    // Initialize IP header
-    pkt_len = (uint16_t)(pkt_len + sizeof(struct rte_ipv4_hdr));
-    ip_hdr->version_ihl = IP_VERSION_HDRLEN;
-    ip_hdr->type_of_service = 0;
-    ip_hdr->fragment_offset = 0;
-    ip_hdr->time_to_live = IP_DEFAULT_TTL;
-    ip_hdr->next_proto_id = IPPROTO_UDP;
-    ip_hdr->packet_id = 0;
-    ip_hdr->total_length = rte_cpu_to_be_16(pkt_len);
-    ip_hdr->src_addr = rte_cpu_to_be_32(conf->local_addr.ip.sin_addr.s_addr);
-    ip_hdr->dst_addr = rte_cpu_to_be_32(conf->remote_addr.ip.sin_addr.s_addr);
-    // Compute IP header checksum
-    ip_hdr->hdr_checksum = dpdk_calc_ipv4_checksum(ip_hdr);
 }
 
 /**
@@ -318,7 +192,7 @@ int dpdk_init(struct config *conf) {
     conf->dpdk.mbufs =
        rte_pktmbuf_pool_create("mbuf_pool", n_mbufs, get_cache_size(n_mbufs),
                                 0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
-                        
+
 
     if (conf->dpdk.mbufs == NULL) {
         PRINT_DPDK_ERROR("Unable to allocate mbufs: %s.\n",
@@ -394,18 +268,6 @@ int dpdk_init(struct config *conf) {
         return -1;
     }
 
-    struct rte_ether_addr addr;
-    res = rte_eth_macaddr_get(port_id, &addr);
-    if (res != 0)
-      return res;
-
-    printf("Port %u MAC: %02" PRIx8 " %02" PRIx8 " %02" PRIx8
-           " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
-        port_id,
-        addr.addr_bytes[0], addr.addr_bytes[1],
-        addr.addr_bytes[2], addr.addr_bytes[3],
-        addr.addr_bytes[4], addr.addr_bytes[5]);
-
     /* Enable promiscuous mode */
     /* NOTICE: The device will show packets that are not meant for the
      * device MAC address too.
@@ -415,42 +277,47 @@ int dpdk_init(struct config *conf) {
     if(res == 0)
         printf("OK!\n");
 
-    //printf("Prova: %s\n", conf->prova);
-
     return 0;
 }
+
+/*static inline void consume_data(byte_t *payload_v, uchar *buf, size_t size)
+{
+    bool checksum_valid = check_checksum(payload_v, size);
+
+    if (!checksum_valid)
+    {
+        fprintf(stderr, "ERROR: received message checksum is not correct!\n");
+    }
+
+    uchar* payload = (uchar *)payload_v;
+    //memcpy((void *)buf, payload_v, size);
+}
+
+static inline void dpdk_consume_data_offset(struct rte_mbuf *pkt,
+					    ssize_t offset,
+					    uchar* buf,
+					    size_t size)
+{
+    consume_data(dpdk_pkt_offset(pkt, uchar*, offset), buf, size);
+}*/
 
 size_t vio_dpdk_read(Vio *vio, uchar *buf, size_t size) {
 
     DBUG_TRACE;
 
     int res;
-
-    const size_t data_offset = OFFSET_DATA_SR;
-
-    struct rte_eth_stats	stats;
-
-    //struct rte_ether_hdr pkt_eth_hdr;
-    //struct rte_ipv4_hdr pkt_ip_hdr;
-    //struct rte_udp_hdr pkt_udp_hdr;
-
+    const size_t data_offset = OFFSET_DATA;
+    struct rte_eth_stats stats;
     struct rte_mbuf *pkts_burst[1];
+    size_t pkts_rx;
 
-    size_t pkts_rx = 0;
-    //size_t i;
-
-    //dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, &vio->dpdk_config);
-
+    //vio->dpdk_config.pkt_size = size;
 
     while(pkts_rx == 0){
-      pkts_rx = rte_eth_rx_burst(vio->dpdk_config.dpdk.portid, 0, pkts_burst, 8);
-
+      pkts_rx = rte_eth_rx_burst(vio->dpdk_config.dpdk.portid, 0, pkts_burst, 1);
       printf("PACCHETTI RICEVUTI: %lu\n\n", pkts_rx);
-
       res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-
       if (res == 0) printf("OK stats\n");
-
       printf("ipackets: %lu\n", stats.ipackets);
       printf("opackets: %lu\n", stats.opackets);
       printf("ibytes: %lu\n", stats.ibytes);
@@ -459,42 +326,122 @@ size_t vio_dpdk_read(Vio *vio, uchar *buf, size_t size) {
       printf("ierrors: %lu\n", stats.ierrors);
       printf("oerrors: %lu\n", stats.oerrors);
       printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-
     }
-
-    dpdk_consume_data_offset(pkts_burst[0], data_offset, buf, size);
-
+    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkts_burst[0], uchar *, data_offset), size);
     printf("PKTS_RX: %lu %lu\n\n", pkts_rx, size);
-
     rte_pktmbuf_free(pkts_burst[0]);
+    return pkts_rx * size;
+}
 
-    return size;
+void dpdk_pkt_prepare(struct rte_mbuf *pkt,
+                                    struct config *conf,
+                                    struct rte_ether_hdr *pkt_eth_hdr,
+                                    struct rte_ipv4_hdr *pkt_ip_hdr,
+                                    struct rte_udp_hdr *pkt_udp_hdr)
+{
+
+    rte_pktmbuf_reset_headroom(pkt);
+    pkt->data_len = conf->pkt_size;
+
+    pkt->pkt_len = conf->pkt_size; 
+
+    pkt->next = NULL;
+
+    copy_buf_to_pkt(pkt_eth_hdr,
+                    sizeof(struct rte_ether_hdr),
+                    pkt,
+                    OFFSET_ETHER);
+
+    copy_buf_to_pkt(pkt_ip_hdr,
+                    sizeof(struct rte_ipv4_hdr),
+                    pkt,
+                    OFFSET_IPV4);
+
+    copy_buf_to_pkt(pkt_udp_hdr,
+                    sizeof(struct rte_udp_hdr),
+                    pkt,
+                    OFFSET_UDP);
+
+    pkt->nb_segs = 1;
+    pkt->ol_flags = 0;
+    pkt->vlan_tci = 0;
+    pkt->vlan_tci_outer = 0;
+    pkt->l2_len = sizeof(struct rte_ether_hdr);
+    pkt->l3_len = sizeof(struct rte_ipv4_hdr);
+}
+
+
+// Setting up ETH, IP and UDP headers for later use
+void dpdk_setup_pkt_headers(
+    struct rte_ether_hdr *eth_hdr,
+    struct rte_ipv4_hdr *ip_hdr,
+    struct rte_udp_hdr *udp_hdr,
+    struct config *conf)
+{
+    uint16_t pkt_len;
+    uint16_t payload_len = (uint16_t)(conf->pkt_size - (sizeof(struct rte_ether_hdr) +
+                                                        sizeof(struct rte_ipv4_hdr) +
+                                                        sizeof(struct rte_udp_hdr)));
+
+    printf("PAYLOAD LEN: %d \n", payload_len);
+    // Initialize ETH header
+    rte_ether_addr_copy((struct rte_ether_addr *)conf->local_mac, &eth_hdr->s_addr);
+    rte_ether_addr_copy((struct rte_ether_addr *)conf->remote_mac, &eth_hdr->d_addr);
+    eth_hdr->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
+
+    // Initialize UDP header
+    pkt_len = (uint16_t)(payload_len + sizeof(struct rte_udp_hdr));
+    udp_hdr->src_port = rte_cpu_to_be_16(conf->local_port);
+    udp_hdr->dst_port = rte_cpu_to_be_16(conf->remote_port);
+    udp_hdr->dgram_len = rte_cpu_to_be_16(pkt_len);
+    udp_hdr->dgram_cksum = 0; /* No UDP checksum. */
+
+    // Initialize IP header
+    pkt_len = (uint16_t)(pkt_len + sizeof(struct rte_ipv4_hdr));
+    ip_hdr->version_ihl = IP_VERSION_HDRLEN;
+    ip_hdr->type_of_service = 0;
+    ip_hdr->fragment_offset = 0;
+    ip_hdr->time_to_live = IP_DEFAULT_TTL;
+    ip_hdr->next_proto_id = IPPROTO_UDP;
+    ip_hdr->packet_id = 0;
+    ip_hdr->total_length = rte_cpu_to_be_16(pkt_len);
+    ip_hdr->src_addr = rte_cpu_to_be_32(conf->local_addr.ip.sin_addr.s_addr);
+    ip_hdr->dst_addr = rte_cpu_to_be_32(conf->remote_addr.ip.sin_addr.s_addr);
+    // Compute IP header checksum
+    ip_hdr->hdr_checksum = dpdk_calc_ipv4_checksum(ip_hdr);
+}
+
+static inline void produce_data(void *payload_v, const uchar *buf, size_t size) {
+
+    rte_memcpy(payload_v, (const void*)buf, size);
+
+}
+
+static inline void dpdk_produce_data_offset(struct rte_mbuf *pkt,
+				            ssize_t offset,
+					    const uchar* buf,
+					    size_t size)
+{
+    produce_data(dpdk_pkt_offset(pkt, uchar*, offset), buf, size);
 }
 
 size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
 
     DBUG_TRACE;
 
-    struct rte_eth_stats	stats;
-
+    struct rte_eth_stats stats;
     int res = 0;
-
-    const size_t data_offset = OFFSET_DATA_SR;
-
+    const size_t data_offset = OFFSET_DATA;
     struct rte_ether_hdr pkt_eth_hdr;
     struct rte_ipv4_hdr pkt_ip_hdr;
     struct rte_udp_hdr pkt_udp_hdr;
-
-    struct rte_mbuf *pkts_burst[DEFAULT_BST_SIZE];
-    struct rte_mbuf *pkt;
-
+    struct rte_mbuf *pkts_burst[1];
+    struct rte_mbuf* pkt;
     size_t pkts_tx;
 
-    vio->dpdk_config.pkt_size = size + sizeof(struct rte_ether_hdr) + 
-		sizeof(struct rte_ipv4_hdr) + sizeof(struct rte_udp_hdr);
+    vio->dpdk_config.pkt_size = size + data_offset;
 
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, &vio->dpdk_config);
-
     pkt = rte_mbuf_raw_alloc(vio->dpdk_config.dpdk.mbufs);
 
     if (unlikely(pkt == NULL))
@@ -505,19 +452,12 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     }
 
     dpdk_pkt_prepare(pkt, &vio->dpdk_config, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    dpdk_produce_data_offset(pkt, data_offset, buf, size);
-
-    //pkt = (rte_mbuf*)buf;
-
+    rte_memcpy(rte_pktmbuf_mtod(pkt, uchar*), buf, size);
     pkts_burst[0] = pkt;
-
     pkts_tx = rte_eth_tx_burst(vio->dpdk_config.dpdk.portid, 0, pkts_burst, 1);
     printf("\nPACKET SENT: %lu\n", pkts_tx);
-
     res = rte_eth_stats_get(vio->dpdk_config.dpdk.portid, &stats);
-
     if (res == 0) printf("OK stats\n");
-
     printf("ipackets: %lu\n", stats.ipackets);
     printf("opackets: %lu\n", stats.opackets);
     printf("ibytes: %lu\n", stats.ibytes);
@@ -526,11 +466,9 @@ size_t vio_dpdk_write(Vio *vio, const uchar *buf, size_t size) {
     printf("ierrors: %lu\n", stats.ierrors);
     printf("oerrors: %lu\n", stats.oerrors);
     printf("rx_nombuf: %lu\n\n\n", stats.rx_nombuf);
-
-    //config_print(&vio->dpdk_config);
-
-
     rte_pktmbuf_free(pkts_burst[0]);
 
-    return 1 * size;
+    sleep(3);
+
+    return pkts_tx * size;
 }

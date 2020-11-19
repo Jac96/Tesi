@@ -58,8 +58,8 @@
 #define OFFSET_UDP (OFFSET_IPV4 + sizeof(struct rte_ipv4_hdr))
 #define OFFSET_PAYLOAD (OFFSET_UDP + sizeof(struct rte_udp_hdr))
 #define OFFSET_TIMESTAMP (OFFSET_PAYLOAD)
-#define OFFSET_DATA_SR (OFFSET_PAYLOAD)
-#define OFFSET_DATA_CS (OFFSET_PAYLOAD + sizeof(tsc_t))
+#define OFFSET_DATA (OFFSET_PAYLOAD)
+//#define OFFSET_DATA_CS (OFFSET_PAYLOAD + sizeof(tsc_t))
 
 #define PKT_HEADER_SIZE (OFFSET_PAYLOAD - OFFSET_ETHER)
 
@@ -205,39 +205,3 @@ static inline void copy_buf_to_pkt(
 {
     rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char *, offset), buf, (size_t)len);
 }
-
-extern inline void dpdk_pkt_prepare(struct rte_mbuf *pkt,
-                                    struct config *conf,
-                                    struct rte_ether_hdr *pkt_eth_hdr,
-                                    struct rte_ipv4_hdr *pkt_ip_hdr,
-                                    struct rte_udp_hdr *pkt_udp_hdr)
-{
-
-    rte_pktmbuf_reset_headroom(pkt);
-    pkt->data_len = conf->pkt_size;
-    pkt->pkt_len = pkt->data_len;
-    pkt->next = NULL;
-
-    copy_buf_to_pkt(pkt_eth_hdr,
-                    sizeof(struct rte_ether_hdr),
-                    pkt,
-                    OFFSET_ETHER);
-
-    copy_buf_to_pkt(pkt_ip_hdr,
-                    sizeof(struct rte_ipv4_hdr),
-                    pkt,
-                    OFFSET_IPV4);
-
-    copy_buf_to_pkt(pkt_udp_hdr,
-                    sizeof(struct rte_udp_hdr),
-                    pkt,
-                    OFFSET_UDP);
-
-    pkt->nb_segs = 1;
-    pkt->ol_flags = 0;
-    pkt->vlan_tci = 0;
-    pkt->vlan_tci_outer = 0;
-    pkt->l2_len = sizeof(struct rte_ether_hdr);
-    pkt->l3_len = sizeof(struct rte_ipv4_hdr);
-}
-
