@@ -140,7 +140,7 @@ using std::swap;
 //extern int my_g_argc;
 //extern char** my_g_argv;
 
-//struct config server_conf = {};
+struct config client_conf = {};
 
 #define STATE_DATA(M) \
   (NULL != (M) ? &(MYSQL_EXTENSION_PTR(M)->state_change) : NULL)
@@ -5810,23 +5810,6 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
     //DPDK
     net->vio =
         vio_new(sock, VIO_TYPE_DPDK, VIO_LOCALHOST | VIO_BUFFERED_READ);
-
-    struct config client_conf = {};
-
-    // Default configuration for local program
-    client_conf.bst_size = DEFAULT_BST_SIZE;
-    client_conf.local_port = CLIENT_PORT;
-    client_conf.remote_port = SERVER_PORT;
-    strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
-    strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
-    strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
-    strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
-
-    int res = dpdk_init(&client_conf);
-
-    if (res < 0) {
-        printf("BAD DPDK INITIALIZATION!!\n");
-    }
 
     net->vio->dpdk_config = client_conf;
 

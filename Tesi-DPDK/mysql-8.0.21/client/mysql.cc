@@ -100,7 +100,6 @@
 
 #include "sql-common/net_ns.h"
 
-
 using std::max;
 using std::min;
 
@@ -1248,6 +1247,39 @@ int main(int argc, char *argv[]) {
     DPDK parameters come after the '---'
   */
 
+  // Default configuration for local program
+  client_conf.bst_size = DEFAULT_BST_SIZE;
+  client_conf.local_port = CLIENT_PORT;
+  client_conf.remote_port = SERVER_PORT;
+  strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
+  strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
+  strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
+  strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
+
+    printf("CONFIGURATION\n");
+    printf("-------------------------------------\n");
+    printf("rate (pps)\t%lu\n", client_conf.rate);
+    printf("pkt size\t%u\n", client_conf.pkt_size);
+    printf("bst size\t%u\n", client_conf.bst_size);
+
+    printf("\n");
+
+    printf("port local\t%d\n\n", client_conf.local_port);
+
+    printf("port remote\t%d\n\n",client_conf.remote_port);
+
+    printf("ip local\t%s\n\n", client_conf.local_ip);
+
+    printf("ip  remote\t%s\n\n", client_conf.remote_ip);
+
+    printf("mac local\t%s\n\n", client_conf.local_mac);
+
+    printf("mac  remote\t%s\n\n", client_conf.remote_mac);
+
+    //printf("conf->dpdk.mbuf: %s\n", conf->dpdk.mbuf);
+
+    printf("-------------------------------------\n");
+
   char* eal_argv[20];
   int eal_argc = 0;
 
@@ -1270,6 +1302,12 @@ int main(int argc, char *argv[]) {
   {
       PRINT_DPDK_ERROR("Unable to init RTE: %s.\n", rte_strerror(rte_errno));
       return -1;
+  }
+
+  res = dpdk_init(&client_conf);
+
+  if (res < 0) {
+      printf("BAD DPDK INITIALIZATION!!\n");
   }
 
   char buff[80];

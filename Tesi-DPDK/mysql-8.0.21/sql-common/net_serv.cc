@@ -929,6 +929,10 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
 static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
+  printf("DEBUG: net_write_buff...\n\n");
+
+  printf("%s", net->compress ? "DEBUG: net->compress: true" : "DEBUG: net->compress: false");
+
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
     left_length = (ulong)(MAX_PACKET_LENGTH - (net->write_pos - net->buff));
@@ -980,9 +984,11 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 
   @return true on error, false on success.
 */
-//DPDK
+
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
+
+  printf("DEBUG: write raw loop...\n\n");
 
   while (count) {
 
@@ -1281,6 +1287,8 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
   bool res;
   DBUG_TRACE;
 
+  printf("DEBUG: writing a packet...\n\n");
+
   /* Socket can't be used */
   if (net->error == 2) return true;
 
@@ -1300,12 +1308,6 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
 #ifdef DEBUG_DATA_PACKETS
   DBUG_DUMP("data", packet, length);
 #endif
-
-  //DPDK
-  //res = vio_write(net->vio, packet, length);
-  //if (res > 0) res = false;
-
-  //printf("RES: %s\n", res ? "true" : "false");
 
   res = net_write_raw_loop(net, packet, length);
 
@@ -1407,6 +1409,8 @@ static bool net_read_packet_header(NET *net) {
   uchar pkt_nr;
   size_t count = NET_HEADER_SIZE;
   bool rc;
+
+  printf("DEBUG: reading packet header...\n\n");
 
   if (net->compress) count += COMP_HEADER_SIZE;
 
@@ -2007,6 +2011,8 @@ static net_async_status net_read_uncompressed_nonblocking(NET *net,
 static size_t net_read_packet(NET *net, size_t *complen) {
   size_t pkt_len, pkt_data_len;
 
+  printf("DEBUG: reading a packet...\n\n");
+
   *complen = 0;
 
   net->reading_or_writing = 1;
@@ -2017,6 +2023,8 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   net->compress_pkt_nr = net->pkt_nr;
 
   if (net->compress) {
+
+    printf("DEBUG: compress is true!!\n\n");
 
     /*
       The right-hand expression
