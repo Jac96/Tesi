@@ -148,7 +148,7 @@ class Channel_info_local_socket : public Channel_info {
 
     //printf("QUA 001 \n");
     //DPDK
-    Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_DPDK, VIO_LOCALHOST);
+    Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_SOCKET, VIO_LOCALHOST);
         //mysql_socket_vio_new(m_connect_sock, VIO_TYPE_SOCKET, VIO_LOCALHOST);
     vio->dpdk_config = server_conf;
 

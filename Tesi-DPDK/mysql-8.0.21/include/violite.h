@@ -47,7 +47,7 @@
 #include <netinet/in.h>
 #include <netpacket/packet.h>
 
-#include "dpdk_config.h"
+//#include "dpdk_config.h"
 /*end DPDK*/
 
 #include "my_inttypes.h"

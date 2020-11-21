@@ -55,6 +55,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 #include "mysql/components/services/mysql_socket_bits.h"
 #include "pfs_socket_provider.h"
 
+#include "dpdk_config.h"
+
+
 #ifndef PSI_SOCKET_CALL
 #define PSI_SOCKET_CALL(M) psi_socket_service->M
 #endif
@@ -345,10 +348,10 @@ static inline void inline_mysql_socket_set_state(MYSQL_SOCKET socket,
   @param FL Control flags
 */
 #ifdef HAVE_PSI_SOCKET_INTERFACE
-#define mysql_socket_send(FD, B, N, FL) \
-  inline_mysql_socket_send(__FILE__, __LINE__, FD, B, N, FL)
+#define mysql_socket_send(C, FD, B, N, FL) \
+  inline_mysql_socket_send(__FILE__, __LINE__, C, FD, B, N, FL)
 #else
-#define mysql_socket_send(FD, B, N, FL) inline_mysql_socket_send(FD, B, N, FL)
+#define mysql_socket_send(C, FD, B, N, FL) inline_mysql_socket_send(C, FD, B, N, FL)
 #endif
 
 /**
@@ -361,10 +364,10 @@ static inline void inline_mysql_socket_set_state(MYSQL_SOCKET socket,
   @param FL Control flags
 */
 #ifdef HAVE_PSI_SOCKET_INTERFACE
-#define mysql_socket_recv(FD, B, N, FL) \
-  inline_mysql_socket_recv(__FILE__, __LINE__, FD, B, N, FL)
+#define mysql_socket_recv(C, FD, B, N, FL) \
+  inline_mysql_socket_recv(__FILE__, __LINE__, C, FD, B, N, FL)
 #else
-#define mysql_socket_recv(FD, B, N, FL) inline_mysql_socket_recv(FD, B, N, FL)
+#define mysql_socket_recv(C, FD, B, N, FL) inline_mysql_socket_recv(C, FD, B, N, FL)
 #endif
 
 /**
@@ -691,8 +694,11 @@ static inline ssize_t inline_mysql_socket_send(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags) {
+    struct config *conf, MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf,
+    size_t n, int flags MY_ATTRIBUTE((unused))) {
   ssize_t result;
+
+  printf("SENDING %lu BYTE \n", n);
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
@@ -703,7 +709,9 @@ static inline ssize_t inline_mysql_socket_send(
         &state, mysql_socket.m_psi, PSI_SOCKET_SEND, n, src_file, src_line);
 
     /* Instrumented code */
-    result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    //result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    result =         vio_dpdk_write(conf, (const uchar*)buf, n);
+    printf("DIFFERENCES: send: %lu \n\n", result);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -717,7 +725,10 @@ static inline ssize_t inline_mysql_socket_send(
 #endif
 
   /* Non instrumented code */
-  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  //result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  result =         vio_dpdk_write(conf, (const uchar*)buf, n);
+
+  printf("DIFFERENCES: send: %lu \n\n", result);
 
   return result;
 }
@@ -728,7 +739,8 @@ static inline ssize_t inline_mysql_socket_recv(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags) {
+    struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf,
+    size_t n, int flags MY_ATTRIBUTE((unused))) {
   ssize_t result;
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
@@ -741,7 +753,10 @@ static inline ssize_t inline_mysql_socket_recv(
                                                 src_file, src_line);
 
     /* Instrumented code */
-    result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    //result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    result = vio_dpdk_read(conf, (uchar*)buf, n);
+
+    printf("DIFFERENCES: n: %lu  recv: %lu \n\n", n, result);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -755,7 +770,10 @@ static inline ssize_t inline_mysql_socket_recv(
 #endif
 
   /* Non instrumented code */
-  result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  //result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  result = vio_dpdk_read(conf, (uchar*)buf, n);
+
+  printf("DIFFERENCES: n: %lu  recv: %lu \n\n", n, result); 
 
   return result;
 }
@@ -769,6 +787,8 @@ static inline ssize_t inline_mysql_socket_sendto(
     MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags,
     const struct sockaddr *addr, socklen_t addr_len) {
   ssize_t result;
+
+  printf("DEBUG: mysql_socket_sendto...\n\n");
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
@@ -809,6 +829,8 @@ static inline ssize_t inline_mysql_socket_recvfrom(
     MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags,
     struct sockaddr *addr, socklen_t *addr_len) {
   ssize_t result;
+
+  printf("DEBUG: mysql_socket_recvfrom...\n\n");
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {

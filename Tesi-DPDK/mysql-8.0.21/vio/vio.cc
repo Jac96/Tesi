@@ -299,8 +299,8 @@ static bool vio_init(Vio *vio, enum enum_vio_type type, my_socket sd,
     case VIO_TYPE_DPDK:
       vio->viodelete = vio_delete;
       vio->vioerrno = vio_errno;
-      vio->read = vio_dpdk_read;
-      vio->write = vio_dpdk_write;
+      vio->read = vio_read;
+      vio->write = vio_write;
       vio->fastsend = vio_fastsend;
       vio->viokeepalive = vio_keepalive;
       vio->should_retry = vio_should_retry;

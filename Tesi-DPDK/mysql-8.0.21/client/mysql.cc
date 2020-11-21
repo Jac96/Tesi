@@ -55,9 +55,7 @@
 #include "violite.h"
 
 //DPDK includes
-
-#include <rte_eal.h>
-#include <rte_errno.h>
+//#include "dpdk_config.h"
 
 #include <string.h>
 
@@ -1241,20 +1239,19 @@ BOOL windows_ctrl_handler(DWORD fdwCtrlType) {
 
 int main(int argc, char *argv[]) {
 
-
-
   /*DPDK eal init
     DPDK parameters come after the '---'
   */
 
   // Default configuration for local program
-  client_conf.bst_size = DEFAULT_BST_SIZE;
-  client_conf.local_port = CLIENT_PORT;
-  client_conf.remote_port = SERVER_PORT;
-  strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
-  strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
-  strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
-  strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
+    client_conf.bst_size = DEFAULT_BST_SIZE;
+    client_conf.local_port = CLIENT_PORT;
+    client_conf.remote_port = SERVER_PORT;
+    strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
+    strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
+    strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
+    strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
+    client_conf.cmd = false;
 
     printf("CONFIGURATION\n");
     printf("-------------------------------------\n");

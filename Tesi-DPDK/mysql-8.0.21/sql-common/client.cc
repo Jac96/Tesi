@@ -5809,7 +5809,7 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
 
     //DPDK
     net->vio =
-        vio_new(sock, VIO_TYPE_DPDK, VIO_LOCALHOST | VIO_BUFFERED_READ);
+        vio_new(sock, VIO_TYPE_SOCKET, VIO_LOCALHOST | VIO_BUFFERED_READ);
 
     net->vio->dpdk_config = client_conf;
 

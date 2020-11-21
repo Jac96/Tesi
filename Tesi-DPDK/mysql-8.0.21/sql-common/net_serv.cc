@@ -425,6 +425,10 @@ static bool net_should_retry(NET *net,
 bool my_net_write(NET *net, const uchar *packet, size_t len) {
   uchar buff[NET_HEADER_SIZE];
 
+  printf("DEBUG: my_net_write...\n\n");
+
+  net->vio->dpdk_config.cmd = false;
+
   DBUG_DUMP("net write", packet, len);
 
   if (unlikely(!net->vio)){ /* nowhere to write */
@@ -865,6 +869,10 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
   /* turn off non blocking operations */
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
+  net->vio->dpdk_config.cmd = true;
+
+  printf("DEBUG: net_write_command...header_len: %lu, size: %lu", head_len, len);
+
   size_t length = len + 1 + head_len; /* 1 extra byte for command */
   uchar buff[NET_HEADER_SIZE + 1];
   uint header_size = NET_HEADER_SIZE + 1;
@@ -929,9 +937,7 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
 static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
-  printf("DEBUG: net_write_buff...\n\n");
-
-  printf("%s", net->compress ? "DEBUG: net->compress: true" : "DEBUG: net->compress: false");
+  printf("DEBUG: net_write_buff...size: %lu\n\n", len);
 
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
@@ -943,13 +949,17 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_DUMP("data", packet, len);
 #endif
   if (len > left_length) {
+    printf("ENTRO 0  %lu\n", left_length);
     if (net->write_pos != net->buff) {
+      printf("ENTRO 1 \n");
       /* Fill up already used packet and write it */
       memcpy(net->write_pos, packet, left_length);
       //NOT TAKEN
       if (net_write_packet(net, net->buff,
                            (size_t)(net->write_pos - net->buff) + left_length))
         return true;
+      
+      printf("ENTRO 2 \n");
       net->write_pos = net->buff;
       packet += left_length;
       len -= left_length;
@@ -967,10 +977,16 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
         len -= left_length;
       }
     }
-    if (len > net->max_packet) return net_write_packet(net, packet, len); //NOT TAKEN
+    if (len > net->max_packet){
+      printf("ENTRO 3 \n");
+      return net_write_packet(net, packet, len); //NOT TAKEN
+    }
     /* Send out rest of the blocks as full sized blocks */
   }
-  if (len > 0) memcpy(net->write_pos, packet, len);
+  if (len > 0){
+    printf("ENTRO 4 \n");
+    memcpy(net->write_pos, packet, len);
+  }
   net->write_pos += len;
   return false;
 }
@@ -988,7 +1004,7 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
 
-  printf("DEBUG: write raw loop...\n\n");
+  printf("DEBUG: write raw loop...size: %lu\n\n", count);
 
   while (count) {
 
@@ -1338,8 +1354,15 @@ static bool net_read_raw_loop(NET *net, size_t count) {
   unsigned int retry_count = 0;
   uchar *buf = net->buff + net->where_b;
 
+  printf("DEBUG: net_read_raw_loop...size: %lu \n\n", count);
+
   while (count) {
+
+    printf("COOOOUUNNT: %lu\n\n", count);
+
     size_t recvcnt = vio_read(net->vio, buf, count);
+
+    printf("COUNT: %lu, RECEIVED: %lu\n\n", count, recvcnt);
 
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (recvcnt == VIO_SOCKET_ERROR) {

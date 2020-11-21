@@ -6521,6 +6521,7 @@ int mysqld_main(int argc, char **argv)
   strcpy(server_conf.remote_ip, CLIENT_ADDR_IP);
   strcpy(server_conf.local_mac, SERVER_ADDR_MAC);
   strcpy(server_conf.remote_mac, CLIENT_ADDR_MAC);
+  server_conf.cmd = false;
 
   char* eal_argv[20];
   int eal_argc = 0;

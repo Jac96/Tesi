@@ -136,6 +136,8 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
+  //config_print(&vio->dpdk_config);
+  printf("CALLED vioread socket...size: %lu\n", size);
 
   /* Ensure nobody uses vio_read_buff and vio_read simultaneously. */
   DBUG_ASSERT(vio->read_end == vio->read_pos);
@@ -143,7 +145,7 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   /* If timeout is enabled, do not block if data is unavailable. */
   if (vio->read_timeout >= 0) flags = VIO_DONTWAIT;
 
-  while ((ret = mysql_socket_recv(vio->mysql_socket, (SOCKBUF_T *)buf, size,
+  while ((ret = mysql_socket_recv(&vio->dpdk_config, vio->mysql_socket, (SOCKBUF_T *)buf, size,
                                   flags)) == -1) {
     int error = socket_errno;
 
@@ -177,6 +179,9 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
 
 size_t vio_read_buff(Vio *vio, uchar *buf, size_t size) {
   size_t rc;
+
+   printf("ENTROOOO  size: %lu\n\n", size);
+
 #define VIO_UNBUFFERED_READ_MIN_SIZE 2048
   DBUG_TRACE;
   DBUG_PRINT("enter", ("sd: %d  buf: %p  size: %u",
@@ -192,7 +197,7 @@ size_t vio_read_buff(Vio *vio, uchar *buf, size_t size) {
       the safest way to handle it is to move to a separate branch.
     */
   } else if (size < VIO_UNBUFFERED_READ_MIN_SIZE) {
-    rc = vio_read(vio, (uchar *)vio->read_buffer, VIO_READ_BUFFER_SIZE);
+    rc = vio_read(vio, (uchar *)vio->read_buffer, size);
     if (rc != 0 && rc != (size_t)-1) {
       if (rc > size) {
         vio->read_pos = vio->read_buffer + size;
@@ -213,11 +218,13 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
+  //config_print(&vio->dpdk_config);
+  printf("CALLER vio_write socket");
 
   /* If timeout is enabled, do not block. */
   if (vio->write_timeout >= 0) flags = VIO_DONTWAIT;
 
-  while ((ret = mysql_socket_send(vio->mysql_socket,
+  while ((ret = mysql_socket_send(&vio->dpdk_config, vio->mysql_socket,
                                   pointer_cast<const SOCKBUF_T *>(buf), size,
                                   flags)) == -1) {
     int error = socket_errno;
