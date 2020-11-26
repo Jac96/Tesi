@@ -967,10 +967,6 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
     if (net->write_pos != net->buff) {
       /* Fill up already used packet and write it */
       memcpy(net->write_pos, packet, left_length);
-      printf("LEFT_LENGTH %lu\n", left_length);
-      conf->writes_to_do[conf->count_w] = left_length;
-      conf->count_w++;
-      //NOT TAKEN
       if (net_write_packet(net, net->buff,
                            (size_t)(net->write_pos - net->buff) + left_length))
         return true;
@@ -999,9 +995,6 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   }
   if (len > 0){
     memcpy(net->write_pos, packet, len);
-    printf("LEN: %lu\n", len);
-    conf->writes_to_do[conf->count_w] = len;
-    conf->count_w++;
   }
   net->write_pos += len;
   return false;

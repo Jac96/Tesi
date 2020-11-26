@@ -1253,7 +1253,6 @@ int main(int argc, char *argv[]) {
     strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
     client_conf.cmd = false;
     client_conf.header = true;
-    client_conf.count_w = 0;
     client_conf.bytes = 0;
     client_conf.msg_p = client_conf.msg;
 

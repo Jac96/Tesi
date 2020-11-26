@@ -6523,7 +6523,6 @@ int mysqld_main(int argc, char **argv)
   strcpy(server_conf.remote_mac, CLIENT_ADDR_MAC);
   server_conf.cmd = false;
   server_conf.header = true;
-  server_conf.count_w = 0;
   server_conf.bytes = 0;
   server_conf.msg_p = server_conf.msg;
 

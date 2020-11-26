@@ -760,11 +760,12 @@ static inline ssize_t inline_mysql_socket_recv(
 
     /* Instrumented code */
     if (conf->bytes == 0){
+      conf->msg_p = conf->msg;
       vio_dpdk_read(conf, conf->msg_p, n);
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
-      printf("HEADER: copiati %lu bytes, conf->bytes: %lu\n", header_size, conf->bytes);
+      printf("Buf pointer: %lu, Buf: %lu", conf->msg_p, conf->msg);
     }else{
       memcpy(buf, conf->msg_p, n);
       printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);
@@ -792,11 +793,12 @@ static inline ssize_t inline_mysql_socket_recv(
 
 
     if (conf->bytes == 0){
-      vio_dpdk_read(conf, conf->msg, n);
+      conf->msg_p = conf->msg;
+      vio_dpdk_read(conf, conf->msg_p, n);
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
-      printf("HEADER: copiati %lu bytes, conf->bytes: %lu\n", header_size, conf->bytes);
+      printf("Buf pointer: %lu, Buf: %lu", conf->msg_p, conf->msg);
     }else{
       memcpy(buf, conf->msg_p, n);
       printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);

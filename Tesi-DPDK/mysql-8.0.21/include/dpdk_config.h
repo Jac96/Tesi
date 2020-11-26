@@ -133,9 +133,6 @@ struct config
 
     struct dpdk_conf dpdk;
 
-    size_t writes_to_do[100];
-    size_t count_w;
-
 //    size_t bytes_to_read;
 
     char msg[16384];
@@ -376,7 +373,6 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     size_t pkts_tx = 0;
     size_t len;
     size_t ret = 0;
-    size_t count_w = conf->count_w;
 
     printf("DEBUG: vio_dpdk_write...size : %lu\n", size);
 
