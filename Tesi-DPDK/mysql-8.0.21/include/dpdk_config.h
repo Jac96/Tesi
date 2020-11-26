@@ -333,8 +333,6 @@ static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) 
     struct rte_mbuf *pkt;
     size_t pkts_rx = 0;
 
-    printf("DEBUG: vio_dpdk_read... size: %lu\n", size);
-
     while(pkts_rx == 0){
       pkts_rx = rte_eth_rx_burst(conf->dpdk.portid, 0, &pkt, 1);
     }
@@ -343,6 +341,7 @@ static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) 
     conf->bytes = stats.ibytes - data_offset;
     rte_eth_stats_reset(conf->dpdk.portid);
     rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
+
     rte_pktmbuf_free(pkt);
 
     return size;

@@ -402,7 +402,7 @@ extern "C" {
  * So, for mbufs that planned to be involved into RX/TX, the recommended
  * minimal buffer length is 2KB + RTE_PKTMBUF_HEADROOM.
  */
-#define	RTE_MBUF_DEFAULT_DATAROOM	2048
+#define	RTE_MBUF_DEFAULT_DATAROOM	8192
 #define	RTE_MBUF_DEFAULT_BUF_SIZE	\
 	(RTE_MBUF_DEFAULT_DATAROOM + RTE_PKTMBUF_HEADROOM)
 

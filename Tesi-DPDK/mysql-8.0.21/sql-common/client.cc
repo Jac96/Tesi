@@ -1323,8 +1323,6 @@ bool cli_advanced_command(MYSQL *mysql, enum enum_server_command command,
   if ((command != COM_QUIT) && mysql->reconnect && !vio_is_connected(net->vio))
     net->error = 2;
 
-  printf("ENTROOO E NON DOVREII\n");
-
   if (net_write_command(net, (uchar)command, header, header_length, arg,
                         arg_length)) {
     DBUG_PRINT("error",
@@ -5814,26 +5812,6 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
         vio_new(sock, VIO_TYPE_SOCKET, VIO_LOCALHOST | VIO_BUFFERED_READ);
 
     net->vio->dpdk_config = client_conf;
-
-    /*printf("CONFIGURATION\n");
-    printf("-------------------------------------\n");
-    printf("rate (pps)\t%lu\n", client_conf.rate);
-    printf("pkt size\t%u\n", client_conf.pkt_size);
-    printf("bst size\t%u\n", client_conf.bst_size);
-
-    printf("\n");
-
-    printf("port local\t%d\n\n", client_conf.local_port);
-
-    printf("port remote\t%d\n\n",client_conf.remote_port);
-
-    printf("ip local\t%s\n\n", client_conf.local_ip);
-
-    printf("ip  remote\t%s\n\n", client_conf.remote_ip);
-
-    printf("mac local\t%s\n\n", client_conf.local_mac);
-
-    printf("mac  remote\t%s\n\n", client_conf.remote_mac);*/
 
     if (!net->vio) {
       DBUG_PRINT("error", ("Unknow protocol %d ", mysql->options.protocol));

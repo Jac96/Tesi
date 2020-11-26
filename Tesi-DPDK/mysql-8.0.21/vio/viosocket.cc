@@ -136,8 +136,6 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
-  //config_print(&vio->dpdk_config);
-  printf("DEBUG: vioread socket...size: %lu\n", size);
 
   /* Ensure nobody uses vio_read_buff and vio_read simultaneously. */
   DBUG_ASSERT(vio->read_end == vio->read_pos);
@@ -180,8 +178,6 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
 size_t vio_read_buff(Vio *vio, uchar *buf, size_t size) {
   size_t rc;
 
-  printf("DEBUG: vio_read_buff...size: %lu\n", size);
-
 #define VIO_UNBUFFERED_READ_MIN_SIZE 2048
   DBUG_TRACE;
   DBUG_PRINT("enter", ("sd: %d  buf: %p  size: %u",
@@ -218,8 +214,6 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
-  //config_print(&vio->dpdk_config);
-  printf("DEBUG: vio_write socket...size: %lu\n", size);
 
   /* If timeout is enabled, do not block. */
   if (vio->write_timeout >= 0) flags = VIO_DONTWAIT;

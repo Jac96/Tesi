@@ -146,35 +146,9 @@ class Channel_info_local_socket : public Channel_info {
  protected:
   virtual Vio *create_and_init_vio() const {
 
-    //printf("QUA 001 \n");
-    //DPDK
     Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_SOCKET, VIO_LOCALHOST);
-        //mysql_socket_vio_new(m_connect_sock, VIO_TYPE_SOCKET, VIO_LOCALHOST);
+    //DPDK
     vio->dpdk_config = server_conf;
-
-    /*printf("CONFIGURATION\n");
-    printf("-------------------------------------\n");
-    printf("rate (pps)\t%lu\n", server_conf.rate);
-    printf("pkt size\t%u\n", server_conf.pkt_size);
-    printf("bst size\t%u\n", server_conf.bst_size);
-
-    printf("\n");
-
-    printf("port local\t%d\n\n", server_conf.local_port);
-
-    printf("port remote\t%d\n\n",server_conf.remote_port);
-
-    printf("ip local\t%s\n\n", server_conf.local_ip);
-
-    printf("ip  remote\t%s\n\n", server_conf.remote_ip);
-
-    printf("mac local\t%s\n\n", server_conf.local_mac);
-
-    printf("mac  remote\t%s\n\n", server_conf.remote_mac);
-
-    //printf("conf->dpdk.mbuf: %s\n", conf->dpdk.mbuf);
-
-    printf("-------------------------------------\n");*/
 
 #ifdef USE_PPOLL_IN_VIO
     if (vio != nullptr) {

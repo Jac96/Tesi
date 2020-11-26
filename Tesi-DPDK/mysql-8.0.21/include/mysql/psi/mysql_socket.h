@@ -750,14 +750,12 @@ static inline ssize_t inline_mysql_socket_recv(
 
     /* Instrumented code */
     if (conf->bytes == 0){
-      printf("ENTROOOOOOOOOO 11111111111111111111\n");
       conf->msg_p = conf->msg;
       vio_dpdk_read(conf, conf->msg_p, n);
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
     }else{
-      printf("ENTROOOOOOOOOOOOOOO 222222222222222222\n");
       memcpy(buf, conf->msg_p, n);
       conf->msg_p += n;
       conf->bytes -= n;
@@ -780,14 +778,12 @@ static inline ssize_t inline_mysql_socket_recv(
   /* Non instrumented code */
 
   if (conf->bytes == 0){
-    printf("ENTROOOOOOOOOOOOOOOOOOOO 111111111111111111\n");
     conf->msg_p = conf->msg;
     vio_dpdk_read(conf, conf->msg_p, n);
     memcpy(buf, conf->msg_p, header_size);
     conf->bytes -= header_size;
     conf->msg_p += header_size;
   }else{
-    printf("ENTROOOOOOOOOOOOOOOOOOOOOOOOOO 22222222222222222222\n");
     memcpy(buf, conf->msg_p, n);
     conf->msg_p += n;
     conf->bytes -= n;

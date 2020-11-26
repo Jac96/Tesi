@@ -205,8 +205,6 @@ bool net_realloc(NET *net, size_t length) {
   uchar *buff;
   size_t pkt_length;
   
-  printf("DEBUG: net_realloc...\n");
-
   DBUG_TRACE;
   DBUG_PRINT("enter", ("length: %lu", (ulong)length));
 
@@ -261,8 +259,6 @@ bool net_realloc(NET *net, size_t length) {
 void net_clear(NET *net, bool check_buffer MY_ATTRIBUTE((unused))) {
   DBUG_TRACE;
 
-  printf("DEBUG: net_clear...\n\n\n");
-
   /* Ensure the socket buffer is empty, except for an EOF (at least 1). */
   DBUG_ASSERT(!check_buffer || (vio_pending(net->vio) <= 1));
 
@@ -277,8 +273,6 @@ void net_clear(NET *net, bool check_buffer MY_ATTRIBUTE((unused))) {
 bool net_flush(NET *net) {
   bool error = false;
  
-  printf("DEBUG: net_flush...\n");
-
   DBUG_TRACE;
   if (net->buff != net->write_pos) {
     //TAKEN
@@ -433,8 +427,6 @@ static bool net_should_retry(NET *net,
 bool my_net_write(NET *net, const uchar *packet, size_t len) {
   uchar buff[NET_HEADER_SIZE];
 
-  printf("DEBUG: my_net_write... LEN: %lu\n", len);
-
   DBUG_DUMP("net write", packet, len);
 
   if (unlikely(!net->vio)){ /* nowhere to write */
@@ -532,8 +524,6 @@ static int begin_packet_write_state(NET *net, uchar command,
                                     const uchar *packet, size_t packet_len,
                                     const uchar *optional_prefix,
                                     size_t prefix_len) {
-  printf("DEBUG: begin_packet_write_state...\n");
-
   DBUG_TRACE;
   size_t header_len = NET_HEADER_SIZE;
   if (net->compress) {
@@ -733,7 +723,6 @@ static int begin_packet_write_state(NET *net, uchar command,
 }
 
 static net_async_status net_write_vector_nonblocking(NET *net, ssize_t *res) {
-  printf("DEBUG: net_write_vector_nonblocking...\n");
 
   NET_ASYNC *net_async = NET_ASYNC_DATA(net);
   struct io_vec *vec =
@@ -796,8 +785,6 @@ net_async_status net_write_command_nonblocking(NET *net, uchar command,
                                                size_t packet_len, bool *res) {
   net_async_status status;
  
- printf("DEBUG: net_write_command_nonblocking...\n");
-
  NET_ASYNC *net_async = NET_ASYNC_DATA(net);
   ssize_t rc;
   DBUG_TRACE;
@@ -882,8 +869,6 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
   /* turn off non blocking operations */
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
-  printf("DEBUG: net_write_command...header_len: %lu, size: %lu\n", head_len, len);
-
   size_t length = len + 1 + head_len; /* 1 extra byte for command */
   uchar buff[NET_HEADER_SIZE + 1];
   uint header_size = NET_HEADER_SIZE + 1;
@@ -948,8 +933,6 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
 static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
-  printf("DEBUG: net_write_buff...size: %lu\n", len);
-
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
     left_length = (ulong)(MAX_PACKET_LENGTH - (net->write_pos - net->buff));
@@ -1009,11 +992,8 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
 
-  printf("DEBUG: net_write_raw_loop...\n");
-
   while (count) {
     size_t sentcnt = vio_write(net->vio, buf, count);
-    printf("Scritti: %lu\n\n\n", sentcnt);
 
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (sentcnt == VIO_SOCKET_ERROR) {
@@ -1309,8 +1289,6 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
   bool res;
   DBUG_TRACE;
 
-  printf("DEBUG: writing a packet...\n");
-
   /* Socket can't be used */
   if (net->error == 2) return true;
 
@@ -1360,13 +1338,9 @@ static bool net_read_raw_loop(NET *net, size_t count) {
   unsigned int retry_count = 0;
   uchar *buf = net->buff + net->where_b;
 
-  printf("DEBUG: net_read_raw_loop...\n");
-
   while (count) {
 
     size_t recvcnt = vio_read(net->vio, buf, count);
-
-    printf("Letti: %lu\n\n\n", recvcnt);
 
     /* VIO_SOCKET_ERROR (-1) indicates an error. */
     if (recvcnt == VIO_SOCKET_ERROR) {
@@ -1438,8 +1412,6 @@ static bool net_read_packet_header(NET *net) {
   size_t count = NET_HEADER_SIZE;
   bool rc;
 
-  printf("DEBUG: reading packet header...\n");
-
   if (net->compress) count += COMP_HEADER_SIZE;
 
 #ifdef MYSQL_SERVER
@@ -1453,17 +1425,14 @@ static bool net_read_packet_header(NET *net) {
     DBUG_ASSERT(server_extension->m_after_header != nullptr);
 
     server_extension->m_before_header(net, user_data, count);
-    printf("COUNT NET READ RAW LOOP: %lu\n", count);
     rc = net_read_raw_loop(net, count);
     server_extension->m_after_header(net, user_data, count, rc);
   } else
 #endif
   {
-    printf("COUNT NET READ RAW LOOP: %lu\n", count);
     rc = net_read_raw_loop(net, count);
   }
 
-  printf("%s", rc ? "true" : "false");
   if (rc) return true;
 
   DBUG_DUMP("packet_header", net->buff + net->where_b, NET_HEADER_SIZE);
@@ -1475,7 +1444,6 @@ static bool net_read_packet_header(NET *net) {
     The local packet counter must be truncated since its not reset.
   */
   if (pkt_nr != (uchar)net->pkt_nr) {
-   printf("HERE IS THE PROBLEM\n");
     /* Not a NET error on the client. XXX: why? */
 #if defined(MYSQL_SERVER)
     my_error(ER_NET_PACKETS_OUT_OF_ORDER, MYF(0));
@@ -1513,8 +1481,6 @@ static bool net_read_packet_header(NET *net) {
 static ulong net_read_available(NET *net, size_t count) {
   size_t recvcnt;
   DBUG_TRACE;
-
-  printf("DEBUG: net_read_available...\n");
 
   NET_ASYNC *net_async = NET_ASYNC_DATA(net);
   if (net_async->cur_pos + count > net->buff + net->max_packet) {
@@ -1614,8 +1580,6 @@ static net_async_status net_read_packet_header_nonblocking(NET *net,
                                                            bool *err_ptr) {
   DBUG_TRACE;
 
-  printf("DEBUG: net_read_packet_header_nonblocking...\n");
-
   uchar pkt_nr;
   size_t bytes_wanted = NET_HEADER_SIZE;
   if (net->compress) bytes_wanted += COMP_HEADER_SIZE;
@@ -1664,7 +1628,6 @@ static net_async_status net_read_packet_header_nonblocking(NET *net,
   Read packet header followed by packet data in an asynchronous way.
 */
 static net_async_status net_read_packet_nonblocking(NET *net, ulong *ret) {
-  printf("DEBUG: net_read_packet_nonblocking...\n");
 
   DBUG_TRACE;
   NET_ASYNC *net_async = NET_ASYNC_DATA(net);
@@ -1786,8 +1749,6 @@ static void net_read_init_offsets(NET *net, size_t &start_of_packet,
                                   size_t &first_packet_offset,
                                   uint &multi_byte_packet, size_t &buf_length) {
   
-  printf("DEBUG: net_read_init_offsets...\n");
-
   if (net->remain_in_buf) {
     buf_length = net->buf_length; /* Data left in old packet */
     first_packet_offset = start_of_packet =
@@ -1819,7 +1780,6 @@ static void net_read_init_offsets(NET *net, size_t &start_of_packet,
 static bool net_read_process_buffer(NET *net, size_t &start_of_packet,
                                     size_t &buf_length, uint &multi_byte_packet,
                                     size_t &first_packet_offset) {
-  printf("DEBUG: net_read_process_buffer...\n");
 
   DBUG_TRACE;
 begin:
@@ -1900,7 +1860,6 @@ static ulong net_read_update_offsets(NET *net, size_t start_of_packet,
                                      size_t first_packet_offset,
                                      size_t buf_length,
                                      uint multi_byte_packet) {
-  printf("DEBUG: net_read_update_offsets...\n");
 
   DBUG_TRACE;
   DBUG_PRINT("info", ("multi_byte_packet: %u, first_packet_offset : %zu, "
@@ -2015,7 +1974,6 @@ static net_async_status net_read_compressed_nonblocking(NET *net,
 */
 static net_async_status net_read_uncompressed_nonblocking(NET *net,
                                                           ulong *len_ptr) {
-  printf("DEBUG: net_read_uncompressed_nonblocking...\n");
   
   DBUG_TRACE;
   DBUG_ASSERT(!net->compress);
@@ -2061,8 +2019,6 @@ static net_async_status net_read_uncompressed_nonblocking(NET *net,
 static size_t net_read_packet(NET *net, size_t *complen) {
   size_t pkt_len, pkt_data_len;
 
-  printf("DEBUG: net_read_packet...\n");
-
   *complen = 0;
 
   net->reading_or_writing = 1;
@@ -2091,21 +2047,14 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   /* The length of the packet that follows. */
   pkt_len = uint3korr(net->buff + net->where_b);
 
-
-  printf("DEBUG: packet_len read_raw_loop: %lu\n", pkt_len);
-
   /* End of big multi-packet. */
   if (!pkt_len) goto end;
 
   pkt_data_len = max(pkt_len, *complen) + net->where_b;
 
-  printf("PKT DATA LEN: %lu net->max_packet: %lu", pkt_data_len, net->max_packet); 
-
   /* Expand packet buffer if necessary. */
   if ((pkt_data_len >= net->max_packet) && net_realloc(net, pkt_data_len))
     goto error;
-
-  printf("DEBUG: packet_len read_raw_loop: %lu\n", pkt_len);
 
   /* Read the packet data (payload). */
   if (net_read_raw_loop(net, pkt_len)) goto error;
@@ -2119,7 +2068,6 @@ end:
 
 error:
   net->reading_or_writing = 0;
-  printf("packet error!!!\n");
   return packet_error;
 }
 
@@ -2127,7 +2075,6 @@ error:
   Non blocking version of my_net_read().
 */
 net_async_status my_net_read_nonblocking(NET *net, ulong *len_ptr) {
-  printf("DEBUG: my_net_read_nonblocking...\n");
   
   net_async_status status;
   if (net->compress)
@@ -2156,7 +2103,6 @@ net_async_status my_net_read_nonblocking(NET *net, ulong *len_ptr) {
 static void net_read_uncompressed_packet(NET *net, size_t &len) {
   size_t complen;
 
-  printf("DEBUG: net_read_uncompressed_packet...\n");
   DBUG_ASSERT(!net->compress);
   len = net_read_packet(net, &complen);
   if (len == MAX_PACKET_LENGTH) {
@@ -2229,8 +2175,6 @@ static void net_read_compressed_packet(NET *net, size_t &len) {
 ulong my_net_read(NET *net) {
   size_t len;
   /* turn off non blocking operations */
-
-  printf("DEBUG: my_net_read...\n");
 
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
