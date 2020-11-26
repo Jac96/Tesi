@@ -707,11 +707,8 @@ static inline ssize_t inline_mysql_socket_send(
         &state, mysql_socket.m_psi, PSI_SOCKET_SEND, n, src_file, src_line);
 
     /* Instrumented code */
-     size_t sent = 0;
      result = vio_dpdk_write(conf, buf, n);
-
 //   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
-     printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -725,15 +722,8 @@ static inline ssize_t inline_mysql_socket_send(
 #endif
 
   /* Non instrumented code */
-
-   size_t sent = 0;
-   size_t bytes;
-
-   printf("Buffer vio_dpdk_write prima: %lu\n", buf);
-   result = vio_dpdk_write(conf, buf, n);
-
+  result = vio_dpdk_write(conf, buf, n);
 //  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
-  printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
 
   return result;
 }
@@ -760,24 +750,22 @@ static inline ssize_t inline_mysql_socket_recv(
 
     /* Instrumented code */
     if (conf->bytes == 0){
+      printf("ENTROOOOOOOOOO 11111111111111111111\n");
       conf->msg_p = conf->msg;
       vio_dpdk_read(conf, conf->msg_p, n);
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
-      printf("Buf pointer: %lu, Buf: %lu", conf->msg_p, conf->msg);
     }else{
+      printf("ENTROOOOOOOOOOOOOOO 222222222222222222\n");
       memcpy(buf, conf->msg_p, n);
-      printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);
       conf->msg_p += n;
       conf->bytes -= n;
     }
 
-    printf("Buffer vio_dpdk_read HEADER_SUZE: %lu\n", header_size);
     result = n;
 //    result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
-    printf("Buffer vio_dpdk_read dopo: %lu\n", buf);
-    printf("DEBUG: mysql_socket_recv: %lu\n\n\n", result);
+
     /* Instrumentation end */
     if (locker != nullptr) {
       size_t bytes_read;
@@ -791,26 +779,22 @@ static inline ssize_t inline_mysql_socket_recv(
 
   /* Non instrumented code */
 
+  if (conf->bytes == 0){
+    printf("ENTROOOOOOOOOOOOOOOOOOOO 111111111111111111\n");
+    conf->msg_p = conf->msg;
+    vio_dpdk_read(conf, conf->msg_p, n);
+    memcpy(buf, conf->msg_p, header_size);
+    conf->bytes -= header_size;
+    conf->msg_p += header_size;
+  }else{
+    printf("ENTROOOOOOOOOOOOOOOOOOOOOOOOOO 22222222222222222222\n");
+    memcpy(buf, conf->msg_p, n);
+    conf->msg_p += n;
+    conf->bytes -= n;
+  }
 
-    if (conf->bytes == 0){
-      conf->msg_p = conf->msg;
-      vio_dpdk_read(conf, conf->msg_p, n);
-      memcpy(buf, conf->msg_p, header_size);
-      conf->bytes -= header_size;
-      conf->msg_p += header_size;
-      printf("Buf pointer: %lu, Buf: %lu", conf->msg_p, conf->msg);
-    }else{
-      memcpy(buf, conf->msg_p, n);
-      printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);
-      conf->msg_p += n;
-      conf->bytes -= n;
-    }
-
-    printf("Buffer vio_dpdk_read HEADER_SUZE: %lu\n", header_size);
-    result = n;
+  result = n;
 //  result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
-  printf("Buffer vio_dpdk_read dopo: %lu\n", buf);
-  printf("DEBUG: mysql_socket_recv: %lu\n\n\n", result);
 
   return result;
 }

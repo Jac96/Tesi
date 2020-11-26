@@ -261,6 +261,8 @@ bool net_realloc(NET *net, size_t length) {
 void net_clear(NET *net, bool check_buffer MY_ATTRIBUTE((unused))) {
   DBUG_TRACE;
 
+  printf("DEBUG: net_clear...\n\n\n");
+
   /* Ensure the socket buffer is empty, except for an EOF (at least 1). */
   DBUG_ASSERT(!check_buffer || (vio_pending(net->vio) <= 1));
 
@@ -432,8 +434,6 @@ bool my_net_write(NET *net, const uchar *packet, size_t len) {
   uchar buff[NET_HEADER_SIZE];
 
   printf("DEBUG: my_net_write... LEN: %lu\n", len);
-
-  net->vio->dpdk_config.cmd = false;
 
   DBUG_DUMP("net write", packet, len);
 
@@ -882,8 +882,6 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
   /* turn off non blocking operations */
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
-  net->vio->dpdk_config.cmd = true;
-
   printf("DEBUG: net_write_command...header_len: %lu, size: %lu\n", head_len, len);
 
   size_t length = len + 1 + head_len; /* 1 extra byte for command */
@@ -951,8 +949,6 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
   printf("DEBUG: net_write_buff...size: %lu\n", len);
-
-  struct config *conf = &net->vio->dpdk_config;
 
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
@@ -1479,6 +1475,7 @@ static bool net_read_packet_header(NET *net) {
     The local packet counter must be truncated since its not reset.
   */
   if (pkt_nr != (uchar)net->pkt_nr) {
+   printf("HERE IS THE PROBLEM\n");
     /* Not a NET error on the client. XXX: why? */
 #if defined(MYSQL_SERVER)
     my_error(ER_NET_PACKETS_OUT_OF_ORDER, MYF(0));
@@ -1489,8 +1486,6 @@ static bool net_read_packet_header(NET *net) {
       the server expects the client to send a file, but the client
       may reply with a new command instead.
     */
-
-   printf("HERE IS THE PROBLEM\n");
 
     my_message_local(ERROR_LEVEL, EE_PACKETS_OUT_OF_ORDER, (uint)pkt_nr,
                      net->pkt_nr);

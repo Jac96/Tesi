@@ -138,7 +138,6 @@ struct config
     char msg[16384];
     char *msg_p;
     size_t bytes;
-    bool cmd, header;
 
 };
 
@@ -334,50 +333,29 @@ static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) 
     struct rte_mbuf *pkt;
     size_t pkts_rx = 0;
 
-    printf("Buf before read: %lu\n", buf);
-
     printf("DEBUG: vio_dpdk_read... size: %lu\n", size);
 
     while(pkts_rx == 0){
       pkts_rx = rte_eth_rx_burst(conf->dpdk.portid, 0, &pkt, 1);
     }
 
-      rte_eth_stats_get(conf->dpdk.portid, &stats);
-      printf("ipackets: %lu\n", stats.ipackets);
-      printf("opackets: %lu\n", stats.opackets);
-      printf("ibytes: %lu\n", stats.ibytes);
-      printf("obytes: %lu\n", stats.obytes);
-      printf("ierrors: %lu\n", stats.ierrors);
-      printf("oerrors: %lu\n", stats.oerrors);
-
+    rte_eth_stats_get(conf->dpdk.portid, &stats);
     conf->bytes = stats.ibytes - data_offset;
-
     rte_eth_stats_reset(conf->dpdk.portid);
-
     rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
     rte_pktmbuf_free(pkt);
-
-    printf("Buf after read: %lu\n", buf);
 
     return size;
 }
 
 static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t size) {
 
-    struct rte_eth_stats stats;
     const size_t data_offset = OFFSET_DATA;
     struct rte_ether_hdr pkt_eth_hdr;
     struct rte_ipv4_hdr pkt_ip_hdr;
     struct rte_udp_hdr pkt_udp_hdr;
     struct rte_mbuf* pkt;
-    size_t pkts_tx = 0;
-    size_t len;
-    size_t ret = 0;
 
-    printf("DEBUG: vio_dpdk_write...size : %lu\n", size);
-
-    printf("Buf before write: %lu\n", buf);
-    
     conf->pkt_size = data_offset + size;
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, conf);
     pkt = rte_mbuf_raw_alloc(conf->dpdk.mbufs);
@@ -390,9 +368,8 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     }
 
     dpdk_pkt_prepare(pkt, conf, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    if (size > 0)
-      rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), (char *)buf, size);
-    pkts_tx = rte_eth_tx_burst(conf->dpdk.portid, 0, &pkt, 1);
+    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf, size);
+    rte_eth_tx_burst(conf->dpdk.portid, 0, &pkt, 1);
     rte_pktmbuf_free(pkt);
 
     return size;
