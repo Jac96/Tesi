@@ -708,19 +708,8 @@ static inline ssize_t inline_mysql_socket_send(
 
     /* Instrumented code */
      size_t sent = 0;
-     size_t bytes;
+     result = vio_dpdk_write(conf, buf, n);
 
-     printf("Buffer vio_dpdk_write prima: %lu\n", buf);
-     for (int i=1; i < conf->count_w; i=i+2){
-       bytes = conf->writes_to_do[i-1] + conf->writes_to_do[i];
-//       vio_dpdk_write(conf, buf, bytes);
-       sent = sent + bytes;
-     }
-     vio_dpdk_write(conf, buf, bytes);
-
-     conf->count_w = 0;
-     result = n;
-     
 //   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
      printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
 
@@ -741,14 +730,7 @@ static inline ssize_t inline_mysql_socket_send(
    size_t bytes;
 
    printf("Buffer vio_dpdk_write prima: %lu\n", buf);
-   for (int i=1; i < conf->count_w; i=i+2){
-     bytes = conf->writes_to_do[i-1] + conf->writes_to_do[i];
-//     vio_dpdk_write(conf, buf, bytes);
-     sent = sent + bytes;
-   }
-   vio_dpdk_write(conf, buf, bytes);
-   conf->count_w = 0;
-   result = n;
+   result = vio_dpdk_write(conf, buf, n);
 
 //  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
   printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
@@ -782,10 +764,10 @@ static inline ssize_t inline_mysql_socket_recv(
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
-      printf("HEADER: copiati %lu bytes\n", header_size);
+      printf("HEADER: copiati %lu bytes, conf->bytes: %lu\n", header_size, conf->bytes);
     }else{
       memcpy(buf, conf->msg_p, n);
-      printf("PAYLOAD: copiati %lu bytes\n", n);
+      printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);
       conf->msg_p += n;
       conf->bytes -= n;
     }
@@ -814,10 +796,10 @@ static inline ssize_t inline_mysql_socket_recv(
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
-      printf("HEADER: copiati %lu bytes\n", header_size);
+      printf("HEADER: copiati %lu bytes, conf->bytes: %lu\n", header_size, conf->bytes);
     }else{
       memcpy(buf, conf->msg_p, n);
-      printf("PAYLOAD: copiati %lu bytes\n", n);
+      printf("PAYLOAD: copiati %lu bytes, conf->bytes: %lu\n", n, conf->bytes);
       conf->msg_p += n;
       conf->bytes -= n;
     }
