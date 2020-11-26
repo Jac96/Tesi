@@ -1323,6 +1323,8 @@ bool cli_advanced_command(MYSQL *mysql, enum enum_server_command command,
   if ((command != COM_QUIT) && mysql->reconnect && !vio_is_connected(net->vio))
     net->error = 2;
 
+  printf("ENTROOO E NON DOVREII\n");
+
   if (net_write_command(net, (uchar)command, header, header_length, arg,
                         arg_length)) {
     DBUG_PRINT("error",

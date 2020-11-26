@@ -133,7 +133,15 @@ struct config
 
     struct dpdk_conf dpdk;
 
-    bool cmd;
+    size_t writes_to_do[100];
+    size_t count_w;
+
+//    size_t bytes_to_read;
+
+    char msg[16384];
+    char *msg_p;
+    size_t bytes;
+    bool cmd, header;
 
 };
 
@@ -279,8 +287,6 @@ static inline void config_print(struct config *conf) {
 
     printf("mac  remote\t%s\n\n", conf->remote_mac);
 
-    //printf("conf->dpdk.mbuf: %s\n", conf->dpdk.mbuf);
-
     printf("-------------------------------------\n");
 }
 
@@ -298,7 +304,6 @@ static inline void dpdk_setup_pkt_headers(
                                                         sizeof(struct rte_udp_hdr)));
 
     // Initialize ETH header
-    //pkt_len = (uint16_t)(payload_len + sizeof(struct rte_ether_hdr));
     rte_ether_addr_copy((struct rte_ether_addr *)conf->local_mac, &eth_hdr->s_addr);
     rte_ether_addr_copy((struct rte_ether_addr *)conf->remote_mac, &eth_hdr->d_addr);
     eth_hdr->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV4);
@@ -325,41 +330,42 @@ static inline void dpdk_setup_pkt_headers(
     ip_hdr->hdr_checksum = dpdk_calc_ipv4_checksum(ip_hdr);
 }
 
-static inline size_t vio_dpdk_read(struct config *conf, uchar *buf, size_t size) {
+static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) {
 
     struct rte_eth_stats stats;
     const size_t data_offset = OFFSET_DATA;
     struct rte_mbuf *pkt;
     size_t pkts_rx = 0;
 
-//    config_print(&vio->dpdk_config);
+    printf("Buf before read: %lu\n", buf);
+
+    printf("DEBUG: vio_dpdk_read... size: %lu\n", size);
 
     while(pkts_rx == 0){
-      pkts_rx = rte_eth_rx_burst(conf->dpdk.portid,
-                                 0,
-                                 &pkt,
-                                 1);
-    printf("PACCHETTI RICEVUTI: %lu", pkts_rx);   
- 
-    rte_eth_stats_get(conf->dpdk.portid, &stats);
-    printf("DEVICE STATS: \n");
-    printf("ipackets: %lu\n", stats.ipackets);
-    printf("opackets: %lu\n", stats.opackets);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
-    printf("ierrors: %lu\n", stats.ierrors);
-    printf("oerrors: %lu\n\n\n", stats.oerrors);
-
-    sleep(3);
-
+      pkts_rx = rte_eth_rx_burst(conf->dpdk.portid, 0, &pkt, 1);
     }
-    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), size);
 
+      rte_eth_stats_get(conf->dpdk.portid, &stats);
+      printf("ipackets: %lu\n", stats.ipackets);
+      printf("opackets: %lu\n", stats.opackets);
+      printf("ibytes: %lu\n", stats.ibytes);
+      printf("obytes: %lu\n", stats.obytes);
+      printf("ierrors: %lu\n", stats.ierrors);
+      printf("oerrors: %lu\n", stats.oerrors);
+
+    conf->bytes = stats.ibytes - data_offset;
+
+    rte_eth_stats_reset(conf->dpdk.portid);
+
+    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
     rte_pktmbuf_free(pkt);
+
+    printf("Buf after read: %lu\n", buf);
+
     return size;
 }
 
-static inline size_t vio_dpdk_write(struct config *conf, const uchar *buf, size_t size) {
+static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t size) {
 
     struct rte_eth_stats stats;
     const size_t data_offset = OFFSET_DATA;
@@ -368,13 +374,15 @@ static inline size_t vio_dpdk_write(struct config *conf, const uchar *buf, size_
     struct rte_udp_hdr pkt_udp_hdr;
     struct rte_mbuf* pkt;
     size_t pkts_tx = 0;
+    size_t len;
+    size_t ret = 0;
+    size_t count_w = conf->count_w;
 
-    size_t header_size = 4;
+    printf("DEBUG: vio_dpdk_write...size : %lu\n", size);
 
-   if (conf->cmd) header_size++;
-
-    conf->pkt_size = data_offset + header_size;
-
+    printf("Buf before write: %lu\n", buf);
+    
+    conf->pkt_size = data_offset + size;
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, conf);
     pkt = rte_mbuf_raw_alloc(conf->dpdk.mbufs);
 
@@ -386,58 +394,10 @@ static inline size_t vio_dpdk_write(struct config *conf, const uchar *buf, size_
     }
 
     dpdk_pkt_prepare(pkt, conf, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf, header_size);
-    pkts_tx = rte_eth_tx_burst(conf->dpdk.portid,
-                               0,
-                               &pkt,
-                               1);
-    printf("PACCHETTI INVIATI: %lu", pkts_tx);
-   
-    rte_eth_stats_get(conf->dpdk.portid, &stats);
-    printf("DEVICE STATS: \n");
-    printf("ipackets: %lu\n", stats.ipackets);
-    printf("opackets: %lu\n", stats.opackets);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
-    printf("ierrors: %lu\n", stats.ierrors);
-    printf("oerrors: %lu\n\n\n", stats.oerrors);
-    
-    sleep(3);
+    if (size > 0)
+      rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), (char *)buf, size);
+    pkts_tx = rte_eth_tx_burst(conf->dpdk.portid, 0, &pkt, 1);
     rte_pktmbuf_free(pkt);
-
-    conf->pkt_size = data_offset + size - header_size;
-
-    dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, conf);
-
-    pkt = rte_mbuf_raw_alloc(conf->dpdk.mbufs);
-
-    if (unlikely(pkt == NULL))
-    {
-        fprintf(
-            stderr,
-            "WARN: Could not allocate a buffer, using less packets than required burst size!\n");
-    }
-
-    dpdk_pkt_prepare(pkt, conf, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf + 4, size - header_size);
-    pkts_tx = rte_eth_tx_burst(conf->dpdk.portid,
-                               0,
-                               &pkt,
-                               1);
-    printf("PACCHETTI INVIATI: %lu", pkts_tx);
-   
-    rte_eth_stats_get(conf->dpdk.portid, &stats);
-    printf("DEVICE STATS: \n");
-    printf("ipackets: %lu\n", stats.ipackets);
-    printf("opackets: %lu\n", stats.opackets);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
-    printf("ierrors: %lu\n", stats.ierrors);
-    printf("oerrors: %lu\n\n\n", stats.oerrors);
-    
-    sleep(3);
-    rte_pktmbuf_free(pkt);
-
 
     return size;
 }

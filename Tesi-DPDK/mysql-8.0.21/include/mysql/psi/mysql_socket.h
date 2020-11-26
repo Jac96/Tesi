@@ -698,8 +698,6 @@ static inline ssize_t inline_mysql_socket_send(
     size_t n, int flags MY_ATTRIBUTE((unused))) {
   ssize_t result;
 
-  printf("SENDING %lu BYTE \n", n);
-
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
     /* Instrumentation start */
@@ -709,9 +707,22 @@ static inline ssize_t inline_mysql_socket_send(
         &state, mysql_socket.m_psi, PSI_SOCKET_SEND, n, src_file, src_line);
 
     /* Instrumented code */
-    //result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
-    result =         vio_dpdk_write(conf, (const uchar*)buf, n);
-    printf("DIFFERENCES: send: %lu \n\n", result);
+     size_t sent = 0;
+     size_t bytes;
+
+     printf("Buffer vio_dpdk_write prima: %lu\n", buf);
+     for (int i=1; i < conf->count_w; i=i+2){
+       bytes = conf->writes_to_do[i-1] + conf->writes_to_do[i];
+//       vio_dpdk_write(conf, buf, bytes);
+       sent = sent + bytes;
+     }
+     vio_dpdk_write(conf, buf, bytes);
+
+     conf->count_w = 0;
+     result = n;
+     
+//   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+     printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -725,10 +736,22 @@ static inline ssize_t inline_mysql_socket_send(
 #endif
 
   /* Non instrumented code */
-  //result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
-  result =         vio_dpdk_write(conf, (const uchar*)buf, n);
 
-  printf("DIFFERENCES: send: %lu \n\n", result);
+   size_t sent = 0;
+   size_t bytes;
+
+   printf("Buffer vio_dpdk_write prima: %lu\n", buf);
+   for (int i=1; i < conf->count_w; i=i+2){
+     bytes = conf->writes_to_do[i-1] + conf->writes_to_do[i];
+//     vio_dpdk_write(conf, buf, bytes);
+     sent = sent + bytes;
+   }
+   vio_dpdk_write(conf, buf, bytes);
+   conf->count_w = 0;
+   result = n;
+
+//  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+  printf("DEBUG: mysql_socket_send: %lu\n\n\n", sent);
 
   return result;
 }
@@ -742,6 +765,7 @@ static inline ssize_t inline_mysql_socket_recv(
     struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf,
     size_t n, int flags MY_ATTRIBUTE((unused))) {
   ssize_t result;
+  ssize_t header_size = 4;
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
@@ -753,11 +777,24 @@ static inline ssize_t inline_mysql_socket_recv(
                                                 src_file, src_line);
 
     /* Instrumented code */
-    //result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
-    result = vio_dpdk_read(conf, (uchar*)buf, n);
+    if (conf->bytes == 0){
+      vio_dpdk_read(conf, conf->msg_p, n);
+      memcpy(buf, conf->msg_p, header_size);
+      conf->bytes -= header_size;
+      conf->msg_p += header_size;
+      printf("HEADER: copiati %lu bytes\n", header_size);
+    }else{
+      memcpy(buf, conf->msg_p, n);
+      printf("PAYLOAD: copiati %lu bytes\n", n);
+      conf->msg_p += n;
+      conf->bytes -= n;
+    }
 
-    printf("DIFFERENCES: n: %lu  recv: %lu \n\n", n, result);
-
+    printf("Buffer vio_dpdk_read HEADER_SUZE: %lu\n", header_size);
+    result = n;
+//    result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+    printf("Buffer vio_dpdk_read dopo: %lu\n", buf);
+    printf("DEBUG: mysql_socket_recv: %lu\n\n\n", result);
     /* Instrumentation end */
     if (locker != nullptr) {
       size_t bytes_read;
@@ -770,10 +807,26 @@ static inline ssize_t inline_mysql_socket_recv(
 #endif
 
   /* Non instrumented code */
-  //result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
-  result = vio_dpdk_read(conf, (uchar*)buf, n);
 
-  printf("DIFFERENCES: n: %lu  recv: %lu \n\n", n, result); 
+
+    if (conf->bytes == 0){
+      vio_dpdk_read(conf, conf->msg, n);
+      memcpy(buf, conf->msg_p, header_size);
+      conf->bytes -= header_size;
+      conf->msg_p += header_size;
+      printf("HEADER: copiati %lu bytes\n", header_size);
+    }else{
+      memcpy(buf, conf->msg_p, n);
+      printf("PAYLOAD: copiati %lu bytes\n", n);
+      conf->msg_p += n;
+      conf->bytes -= n;
+    }
+
+    printf("Buffer vio_dpdk_read HEADER_SUZE: %lu\n", header_size);
+    result = n;
+//  result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+  printf("Buffer vio_dpdk_read dopo: %lu\n", buf);
+  printf("DEBUG: mysql_socket_recv: %lu\n\n\n", result);
 
   return result;
 }
