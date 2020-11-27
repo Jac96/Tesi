@@ -1252,22 +1252,30 @@ int main(int argc, char *argv[]) {
   client_conf.msg_p = client_conf.msg;
 
   char* eal_argv[20];
-  int eal_argc = 0;
+  int eal_argc = 3;
+  char separator[5] = "---";
+  char file_prefix[25] = "--file-prefix=client0";
+  char vdev[40] = "--vdev=virtio_user0,path=/tmp/sock0";
 
   int res;
 
-  for(int i=0; i<argc; i++){
-    if(strcmp(argv[i], "---") == 0){
-      int k=0;
-      for(int j=i; j<argc; j++){
-        eal_argv[k] = argv[j];
-        k++;
-      }
-      eal_argc = k;
-      argc = argc - k - 1;
-      break;
-    }
-  }
+//  for(int i=0; i<argc; i++){
+//    if(strcmp(argv[i], "---") == 0){
+//      int k=0;
+//      for(int j=i; j<argc; j++){
+//        eal_argv[k] = argv[j];
+//        k++;
+//      }
+//      eal_argc = k;
+//      argc = argc - k - 1;
+//      break;
+//    }
+//  }
+
+  //forcing client parameters
+  eal_argv[0] =  separator;
+  eal_argv[1] = file_prefix;
+  eal_argv[2] = vdev;
 
   res = dpdk_init(&client_conf, eal_argc, eal_argv);
 
