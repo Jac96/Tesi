@@ -65,12 +65,4 @@ int vio_ssl_shutdown(Vio *vio);
 void vio_ssl_delete(Vio *vio);
 bool vio_ssl_has_data(Vio *vio);
 
-/*DPDK read and write (send and recv)*/
-void config_initialize(struct config *conf,
-                       const struct config_defaults *defaults);
-int dpdk_init(struct config *conf);
-//size_t vio_dpdk_read(struct config *conf, uchar *buf, size_t size);
-//size_t vio_dpdk_write(struct config *conf, const uchar *buf, size_t size);
-/*end DPDK*/
-
 #endif /* VIO_PRIV_INCLUDED */

@@ -133,8 +133,6 @@ struct config
 
     struct dpdk_conf dpdk;
 
-//    size_t bytes_to_read;
-
     char msg[16384];
     char *msg_p;
     size_t bytes;
@@ -374,12 +372,11 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     return size;
 }
 
-static inline int dpdk_init(struct config *conf) {
+static inline int dpdk_init(struct config *conf, int eal_argc, char* eal_argv[]) {
 
     int res;
 
     struct rte_eth_conf PORT_CONF_INIT = {};
-//    config_print(conf);
 
     uint_t ports;   /* Number of ports available, must be equal to 1 for this
                        application if DPDK is used. */
@@ -390,6 +387,15 @@ static inline int dpdk_init(struct config *conf) {
 
     tx_ring_descriptors = 2048;
     rx_ring_descriptors = 2048;
+
+    res = rte_eal_init(eal_argc, eal_argv);
+
+    if (res < 0)
+    {
+        PRINT_DPDK_ERROR("Unable to init RTE: %s.\n", rte_strerror(rte_errno));
+        return -1;
+    }
+
 
     /* Get the number of DPDK ports available */
     ports = rte_eth_dev_count_avail();

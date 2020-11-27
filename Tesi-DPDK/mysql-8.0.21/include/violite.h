@@ -39,17 +39,6 @@
 
 #include <string>
 
-/*DPDK include*/
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#include <netinet/in.h>
-#include <netpacket/packet.h>
-
-//#include "dpdk_config.h"
-/*end DPDK*/
-
 #include "my_inttypes.h"
 #include "my_psi_config.h"  // IWYU pragma: keep
 #include "mysql/components/services/my_io_bits.h"
@@ -118,17 +107,13 @@ enum enum_vio_type : int {
     Implicitly used by plugins that doesn't support any other VIO_TYPE.
   */
   VIO_TYPE_PLUGIN = 7,
-  /**
-    DPDK
-  */
-  VIO_TYPE_DPDK = 8,
 
   FIRST_VIO_TYPE = VIO_TYPE_TCPIP,
   /*
     If a new type is added, please update LAST_VIO_TYPE. In addition, please
     change get_vio_type_name() in vio/vio.c to return correct name for it.
   */
-  LAST_VIO_TYPE = VIO_TYPE_DPDK
+  LAST_VIO_TYPE = VIO_TYPE_PLUGIN
 };
 
 /**
@@ -170,8 +155,6 @@ MYSQL_VIO vio_new_win32shared_memory(HANDLE handle_file_map, HANDLE handle_map,
                                      HANDLE event_client_read,
                                      HANDLE event_conn_closed);
 #else
-//DPDK
-MYSQL_VIO vio_new_dpdk();
 #define HANDLE void *
 #endif /* _WIN32 */
 
@@ -353,9 +336,8 @@ struct Vio {
                                      read buffer */
   char *read_end = {nullptr};     /* end of unfetched data */
 
-  /*DPDK config*/
+  //DPDK
   config dpdk_config;
-  /*end DPDK config*/
 
 #ifdef USE_PPOLL_IN_VIO
   my_thread_t thread_id = {0};  // Thread PID

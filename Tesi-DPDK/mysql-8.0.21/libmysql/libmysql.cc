@@ -1987,7 +1987,6 @@ static bool execute(MYSQL_STMT *stmt, char *packet, ulong length) {
   buff[4] = (char)stmt->flags;
   int4store(buff + 5, 1); /* iteration count */
 
-  //DPDK
   res = (cli_advanced_command(mysql, COM_STMT_EXECUTE, buff, sizeof(buff),
                               (uchar *)packet, length, true, stmt) ||
          (*mysql->methods->read_query_result)(mysql));
@@ -4262,7 +4261,6 @@ int STDCALL mysql_stmt_store_result(MYSQL_STMT *stmt) {
     int4store(buff, stmt->stmt_id);
     int4store(buff + 4, (int)~0); /* number of rows to fetch */
 
-    //DPDK
     if (cli_advanced_command(mysql, COM_STMT_FETCH, buff, sizeof(buff),
                              (uchar *)nullptr, 0, true, stmt)) {
       /*

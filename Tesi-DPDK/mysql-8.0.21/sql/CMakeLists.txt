@@ -690,8 +690,6 @@ SET(SQL_SOURCE
   conn_handler/connection_handler_per_thread.cc
   conn_handler/connection_handler_one_thread.cc
   conn_handler/socket_connection.cc
-  #DPDK
-  conn_handler/dpdk_connection.cc
   conn_handler/init_net_server_extension.cc
   event_data_objects.cc
   event_db_repository.cc 

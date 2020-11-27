@@ -174,12 +174,6 @@ SET(CLIENT_API_NONBLOCKING_FUNCTIONS
   CACHE INTERNAL "Nonblocking functions exported by client API"
 )
 
-#DPDK
-#INCLUDE_DIRECTORIES(
-#    /home/jacopo/Università/Tesi/dpdk-20.05/lib/librte_eal/include
-#    /home/jacopo/Università/Tesi/dpdk-20.05/lib/librte_eal/common
-#)
-
 SET(CLIENT_SOURCES
   libmysql.cc
   errmsg.cc
@@ -287,10 +281,6 @@ IF(UNIX)
     ENDIF()
   ENDMACRO()
 ENDIF()
-
-#DPDK
-#INCLUDE_DIRECTORIES(/home/jacopo/Università/Tesi/dpdk-20.05/lib/librte_eal/common)
-
 
 # Merge several convenience libraries into one big mysqlclient
 # and link them together into shared library.
@@ -414,9 +404,6 @@ IF(HAS_WARN_FLAG)
     COMPILE_FLAGS ${HAS_WARN_FLAG}
     )
 ENDIF()
-
-#TARGET_LINK_LIBRARIES(libmysql PRIVATE /home/jacopo/Università/Tesi/dpdk-20.05/lib/librte_eal/linux/eal.c)
-
 
 # Verify that libmysql_api_test runs OK
 ADD_CUSTOM_COMMAND(TARGET libmysql_api_test POST_BUILD

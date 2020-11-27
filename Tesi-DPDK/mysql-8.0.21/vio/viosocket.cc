@@ -463,10 +463,9 @@ int vio_shutdown(Vio *vio) {
   int r = 0;
   DBUG_TRACE;
 
-  //DPDK, VIO_TYPE_DPDK added
   if (vio->inactive == false) {
     DBUG_ASSERT(vio->type == VIO_TYPE_TCPIP || vio->type == VIO_TYPE_SOCKET ||
-                vio->type == VIO_TYPE_SSL || vio->type == VIO_TYPE_DPDK);
+                vio->type == VIO_TYPE_SSL);
 
     DBUG_ASSERT(mysql_socket_getfd(vio->mysql_socket) >= 0);
     if (mysql_socket_shutdown(vio->mysql_socket, SHUT_RDWR)) r = -1;
@@ -1049,8 +1048,8 @@ bool vio_socket_connect(Vio *vio, struct sockaddr *addr, socklen_t len,
   int retry_count = 0;
   DBUG_TRACE;
 
-  /* Only for socket-based transport types. */ //DPDK
-  //DBUG_ASSERT(vio->type == VIO_TYPE_SOCKET || vio->type == VIO_TYPE_TCPIP);
+  /* Only for socket-based transport types. */
+  DBUG_ASSERT(vio->type == VIO_TYPE_SOCKET || vio->type == VIO_TYPE_TCPIP);
 
   /* If timeout is not infinite, set socket to non-blocking mode. */
   if (((timeout > -1) || nonblocking) && vio_set_blocking(vio, false))

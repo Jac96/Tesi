@@ -115,7 +115,6 @@ struct mysql_async_auth {
   reuse between blocking and non-blocking clients.
 */
 struct mysql_async_connect;
-//DPDK added argc argv types
 typedef mysql_state_machine_status (*csm_function)(mysql_async_connect *);
 
 /*
@@ -132,12 +131,6 @@ enum ssl_exchange_state {
   Struct to track the state of a connection being established.  Once
   the connection is established, the context should be discarded and
   relevant values copied out of it.
-*/
-/*
-    DPDK, struct used to establish the connection.
-    This struct has a MYSQL type, which inside has a NET type, which
-    inside has a MYSQL_VIO type (Vio). MYSQL_VIO has the VIO_TYPE
-    field which is the one used to choose the protocol.
 */
 struct mysql_async_connect {
   /* state for the overall connection process */

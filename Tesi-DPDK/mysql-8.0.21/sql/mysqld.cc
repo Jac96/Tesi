@@ -774,10 +774,6 @@ The documentation is based on the source files such as:
 */
 /* clang-format on */
 
-//DPDK includes
-#include <rte_eal.h>
-#include <rte_errno.h>
-
 #include "sql/mysqld.h"
 
 #include "my_config.h"
@@ -966,8 +962,6 @@ The documentation is based on the source files such as:
 #include "sql/conn_handler/shared_memory_connection.h"
 #include "sql/named_pipe.h"
 #endif
-
-#include "sql/conn_handler/dpdk_connection.h"
 
 #ifdef MY_MSCRT_DEBUG
 #include <crtdbg.h>
@@ -1185,8 +1179,6 @@ static PSI_cond_key key_COND_handler_count;
 static PSI_thread_key key_thread_handle_shutdown_restart;
 static PSI_rwlock_key key_rwlock_LOCK_named_pipe_full_access_group;
 #else
-//DPDK
-static PSI_thread_key key_thread_handle_con_dpdk;
 static PSI_mutex_key key_LOCK_socket_listener_active;
 static PSI_cond_key key_COND_socket_listener_active;
 static PSI_mutex_key key_LOCK_start_signal_handler;
@@ -1841,9 +1833,6 @@ mysql_rwlock_t LOCK_named_pipe_full_access_group;
 char *named_pipe_full_access_group;
 #endif
 
-//DPDK
-Connection_acceptor<DPDK_listener> *dpdk_acceptor = NULL;
-
 Checkable_rwlock *global_sid_lock = nullptr;
 Sid_map *global_sid_map = nullptr;
 Gtid_state *gtid_state = nullptr;
@@ -1939,9 +1928,6 @@ static char shutdown_event_name[40];
 static char restart_event_name[40];
 static NTService Service;  ///< Service object for WinNT
 #endif                     /* _WIN32 */
-
-//DPDK
-static bool opt_enable_dpdk = true;
 
 static bool dynamic_plugins_are_initialized = false;
 
@@ -2263,9 +2249,6 @@ static void close_connections(void) {
   if (shared_mem_acceptor != NULL) shared_mem_acceptor->close_listener();
 #endif
 
-  //DPDK
-  if (dpdk_acceptor != NULL) dpdk_acceptor->close_listener();
-
   /*
     First signal all threads that it's time to die
     This will give the threads some time to gracefully abort their
@@ -2521,9 +2504,6 @@ static void free_connection_acceptors() {
   shared_mem_acceptor = NULL;
 #endif
 
-  //DPDK
-  delete dpdk_acceptor;
-  dpdk_acceptor = NULL;
 }
 
 static void clean_up(bool print_message) {
@@ -3199,29 +3179,6 @@ static bool network_init(void) {
   }
 #endif  // _WIN32
 
-        //DPDK setup dpdk acceptor
-if (opt_enable_dpdk) {
-
-    DPDK_listener *dpdk_listener =
-        new (std::nothrow) DPDK_listener();
-    if (dpdk_listener == NULL) return true;
-
-    dpdk_acceptor = new (std::nothrow)
-        Connection_acceptor<DPDK_listener>(dpdk_listener);
-    if (dpdk_acceptor == NULL) {
-      delete dpdk_listener;
-      dpdk_listener = NULL;
-      return true;
-    }
-
-    if (dpdk_acceptor->init_connection_acceptor()) //call setup_listener
-      return true;
-
-    //dpdk_acceptor->connection_event_loop();
-
-}
-  
-
   return false;
 }
 
@@ -3315,17 +3272,6 @@ void setup_conn_event_handler_threads() {
       handler_count++;
     else
       LogErr(WARNING_LEVEL, ER_CANT_CREATE_SHM_THREAD, error);
-  }
-
-  //DPDK
-  if (opt_enable_dpdk) {
-    int error = mysql_thread_create(
-        key_thread_handle_con_dpdk, &hThread, &connection_attrib,
-        dpdk_conn_event_handler, dpdk_acceptor);
-    if (!error)
-      handler_count++;
-    else
-      //LogErr(WARNING_LEVEL, ER_CANT_CREATE_DPDK_THREAD, error);
   }
 
   // Block until all connection listener threads have exited.
@@ -6527,6 +6473,8 @@ int mysqld_main(int argc, char **argv)
   char* eal_argv[20];
   int eal_argc = 0;
 
+  int res;
+
   for(int i=0; i<argc; i++){
     if(strcmp(argv[i], "---") == 0){
       int k=0;
@@ -6540,15 +6488,7 @@ int mysqld_main(int argc, char **argv)
     }
   }
 
-  int res = rte_eal_init(eal_argc, eal_argv);
-
-  if (res < 0)
-  {
-      PRINT_DPDK_ERROR("Unable to init RTE: %s.\n", rte_strerror(rte_errno));
-      return -1;
-  }
-
-  res = dpdk_init(&server_conf);
+  res = dpdk_init(&server_conf, eal_argc, eal_argv);
 
   if (res < 0) {
       return -1;
@@ -7592,9 +7532,6 @@ int mysqld_main(int argc, char **argv)
     mysqld::runtime::signal_parent(pipe_write_fd, 1);
   }
 
-
-   //DPDK
-  //dpdk_acceptor->connection_event_loop();
 
   mysqld_socket_acceptor->connection_event_loop();
 
@@ -11227,7 +11164,6 @@ static PSI_thread_info all_server_threads[]=
   { &key_thread_handle_con_sockets, "con_sockets", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
   { &key_thread_handle_shutdown_restart, "shutdown_restart", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
 #endif /* _WIN32 */
-  { &key_thread_handle_con_dpdk, "con_dpdk", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
   { &key_thread_bootstrap, "bootstrap", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
   { &key_thread_handle_manager, "manager", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},
   { &key_thread_main, "main", PSI_FLAG_SINGLETON, 0, PSI_DOCUMENT_ME},

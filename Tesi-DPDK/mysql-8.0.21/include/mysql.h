@@ -262,9 +262,7 @@ enum mysql_protocol_type {
   MYSQL_PROTOCOL_TCP,
   MYSQL_PROTOCOL_SOCKET,
   MYSQL_PROTOCOL_PIPE,
-  MYSQL_PROTOCOL_MEMORY,
-  //DPDK
-  MYSQL_PROTOCOL_DPDK
+  MYSQL_PROTOCOL_MEMORY
 };
 
 enum mysql_ssl_mode {
@@ -295,7 +293,6 @@ typedef struct character_set {
 struct MYSQL_METHODS;
 struct MYSQL_STMT;
 
-//DPDK, struct used in mysql_async_connec
 typedef struct MYSQL {
   NET net;                     /* Communication parameters */
   unsigned char *connector_fd; /* ConnectorFd for SSL */

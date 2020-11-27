@@ -136,10 +136,6 @@
 using std::string;
 using std::swap;
 
-//DPDK vio_new_dpdk variables for argc and argv
-//extern int my_g_argc;
-//extern char** my_g_argv;
-
 struct config client_conf = {};
 
 #define STATE_DATA(M) \
@@ -5565,10 +5561,6 @@ static int set_connect_attributes(MYSQL *mysql, char *buff, size_t buf_len) {
 }
 
 
-/*
-DPDK, modify this function to force DPDK protocol. This function will call
-csm_begin_connect who chooses which protocol to use.
-*/ 
 MYSQL *STDCALL mysql_real_connect(MYSQL *mysql, const char *host,
                                   const char *user, const char *passwd,
                                   const char *db, uint port,
@@ -5688,9 +5680,6 @@ net_async_status STDCALL mysql_real_connect_nonblocking(
 static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   MYSQL *mysql = ctx->mysql;
 
-  //DPDK: forcing DPDK protocol
-  //mysql->options.protocol = MYSQL_PROTOCOL_DPDK;
-
   const char *host = ctx->host;
   const char *user = ctx->user;
   const char *passwd = ctx->passwd;
@@ -5807,10 +5796,10 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
       return STATE_MACHINE_FAILED;
     }
 
-    //DPDK
     net->vio =
         vio_new(sock, VIO_TYPE_SOCKET, VIO_LOCALHOST | VIO_BUFFERED_READ);
 
+    //DPDK
     net->vio->dpdk_config = client_conf;
 
     if (!net->vio) {
@@ -6062,17 +6051,6 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
                                saved_error);
       return STATE_MACHINE_FAILED;
     }
-  }
-
-  //DPDK
-  if (!net->vio &&
-       mysql->options.protocol == MYSQL_PROTOCOL_DPDK) {
-
-    net->vio =
-       vio_new_dpdk();
-
-    //dpdk_initialization(&net->vio->dpdk_config, &defaults);
-
   }
 
   ctx->state_function = connect_done ? csm_complete_connect : csm_wait_connect;
@@ -6549,7 +6527,6 @@ static mysql_state_machine_status csm_send_one_init_command(
 }
 #endif
 
-//DPDK
 bool mysql_reconnect(MYSQL *mysql) {
   MYSQL tmp_mysql;
   DBUG_TRACE;
@@ -6572,7 +6549,6 @@ bool mysql_reconnect(MYSQL *mysql) {
       MYSQL_EXTENSION_PTR(mysql)->server_extn;
   MYSQL_EXTENSION_PTR(mysql)->server_extn = nullptr;
 #endif
-//DPDK
   if (!mysql_real_connect(&tmp_mysql, mysql->host, mysql->user, mysql->passwd,
                           mysql->db, mysql->port, mysql->unix_socket,
                           mysql->client_flag | CLIENT_REMEMBER_OPTIONS)) {

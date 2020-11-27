@@ -27,8 +27,6 @@ SET(VIO_SOURCES
   viosocket.cc
   viossl.cc
   viosslfactories.cc
-  #DPDK
-  viodpdk.cc
 )
 
 IF(WIN32)

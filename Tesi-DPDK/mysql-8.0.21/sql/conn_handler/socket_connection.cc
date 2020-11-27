@@ -86,9 +86,6 @@ extern "C" {
 #endif
 #include "connection_handler_manager.h"
 
-//DPDK
-//struct config client_conf = {};
-
 using std::max;
 
 /** Number of connection errors when selecting on the listening port */

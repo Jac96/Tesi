@@ -849,9 +849,8 @@ struct Vio;
 #define MAX_BLOB_WIDTH 16777216 /**< Default width for blob */
 
 
-//DPDK
 typedef struct NET {
-  MYSQL_VIO vio; //DPDK: struct vio, it contains VIO_TYPE
+  MYSQL_VIO vio;
   unsigned char *buff, *buff_end, *write_pos, *read_pos;
   my_socket fd; /* For Perl DBI/dbd */
   /**

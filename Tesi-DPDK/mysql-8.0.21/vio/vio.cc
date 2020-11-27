@@ -47,7 +47,6 @@
 #include "template_utils.h"
 #include "vio/vio_priv.h"
 
-//DPDK
 #ifdef __cplusplus
 extern "C"
 {
@@ -295,29 +294,6 @@ static bool vio_init(Vio *vio, enum enum_vio_type type, my_socket sd,
       vio->is_blocking_flag = true;
       break;
 
-/*DPDK vio_init*/
-    case VIO_TYPE_DPDK:
-      vio->viodelete = vio_delete;
-      vio->vioerrno = vio_errno;
-      vio->read = vio_read;
-      vio->write = vio_write;
-      vio->fastsend = vio_fastsend;
-      vio->viokeepalive = vio_keepalive;
-      vio->should_retry = vio_should_retry;
-      vio->was_timeout = vio_was_timeout;
-      vio->vioshutdown = vio_shutdown;
-      vio->peer_addr = vio_peer_addr;
-      vio->io_wait = vio_io_wait;
-      vio->is_connected = vio_is_connected;
-      vio->timeout = vio_socket_timeout;
-      vio->has_data = vio->read_buffer ? vio_buff_has_data : has_no_data;
-      vio->is_blocking = vio_is_blocking;
-      vio->set_blocking = vio_set_blocking;
-      vio->set_blocking_flag = vio_set_blocking_flag;
-      vio->is_blocking_flag = true;
-      break;
-/*end DPDK*/
-
     default:
       vio->viodelete = vio_delete;
       vio->vioerrno = vio_errno;
@@ -528,21 +504,6 @@ Vio *vio_new_win32shared_memory(HANDLE handle_file_map, HANDLE handle_map,
 }
 #endif
 
-/*DPDK vio structure*/
-
-Vio *vio_new_dpdk(){
-    Vio *vio;
-
-    if ((vio = internal_vio_create(VIO_LOCALHOST))) {
-      if (vio_init(vio, VIO_TYPE_DPDK, 0, VIO_LOCALHOST)) {
-        internal_vio_delete(vio);
-        return nullptr;
-      }
-    }
-    return vio;
-}
-/*end DPDK*/
-
 /**
   Set timeout for a network send or receive operation.
 
@@ -617,8 +578,7 @@ static const vio_string vio_type_names[] = {{"", 0},
                                             {STRING_WITH_LEN("SSL/TLS")},
                                             {STRING_WITH_LEN("Shared Memory")},
                                             {STRING_WITH_LEN("Internal")},
-                                            {STRING_WITH_LEN("Plugin")},
-                                            {STRING_WITH_LEN("DPDK")}}; //DPDK
+                                            {STRING_WITH_LEN("Plugin")}};
 
 void get_vio_type_name(enum enum_vio_type vio_type, const char **str,
                        int *len) {

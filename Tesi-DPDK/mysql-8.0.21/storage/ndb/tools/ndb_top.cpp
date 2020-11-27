@@ -129,10 +129,7 @@ cleanup(bool in_screen)
 
 int connect_mysql()
 {
-  //DPDK
-  const mysql_protocol_type connect_protocol = MYSQL_PROTOCOL_DPDK;
-  printf("CONNECTING WITH DPDK PROTOCOL (ndb_top.cpp)\n");
-      //opt_socket != 0 ? MYSQL_PROTOCOL_SOCKET : MYSQL_PROTOCOL_TCP;
+  opt_socket != 0 ? MYSQL_PROTOCOL_SOCKET : MYSQL_PROTOCOL_TCP;
   mysql_options(con, MYSQL_OPT_PROTOCOL, (void*)&connect_protocol);
 
   MYSQL *loc = mysql_real_connect(con,
