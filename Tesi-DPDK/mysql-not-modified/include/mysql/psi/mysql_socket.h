@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
   @file include/mysql/psi/mysql_socket.h
 */
 
+#include <stdio.h>
+
 #ifndef MYSQL_SOCKET_H
 #define MYSQL_SOCKET_H
 
@@ -694,6 +696,8 @@ static inline ssize_t inline_mysql_socket_send(
     MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags) {
   ssize_t result;
 
+  printf("USING THIS SEND::\n");
+
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
     /* Instrumentation start */
@@ -730,6 +734,8 @@ static inline ssize_t inline_mysql_socket_recv(
 #endif
     MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags) {
   ssize_t result;
+
+  printf("USING THIS RECV..\n");
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
@@ -770,6 +776,8 @@ static inline ssize_t inline_mysql_socket_sendto(
     const struct sockaddr *addr, socklen_t addr_len) {
   ssize_t result;
 
+  printf("USING THIS SENDTO...\n");
+
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
     /* Instrumentation start */
@@ -809,6 +817,8 @@ static inline ssize_t inline_mysql_socket_recvfrom(
     MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags,
     struct sockaddr *addr, socklen_t *addr_len) {
   ssize_t result;
+
+  printf("USING THIS RECFROM...\n");
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {

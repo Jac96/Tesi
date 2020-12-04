@@ -382,11 +382,11 @@ static inline void inline_mysql_socket_set_state(MYSQL_SOCKET socket,
   @param L  Size of sockaddr structure
 */
 #ifdef HAVE_PSI_SOCKET_INTERFACE
-#define mysql_socket_sendto(FD, B, N, FL, AP, L) \
-  inline_mysql_socket_sendto(__FILE__, __LINE__, FD, B, N, FL, AP, L)
+#define mysql_socket_sendto(C, FD, B, N, FL, AP, L) \
+  inline_mysql_socket_sendto(__FILE__, __LINE__, C, FD, B, N, FL, AP, L)
 #else
-#define mysql_socket_sendto(FD, B, N, FL, AP, L) \
-  inline_mysql_socket_sendto(FD, B, N, FL, AP, L)
+#define mysql_socket_sendto(C, FD, B, N, FL, AP, L) \
+  inline_mysql_socket_sendto(C, FD, B, N, FL, AP, L)
 #endif
 
 /**
@@ -401,11 +401,11 @@ static inline void inline_mysql_socket_set_state(MYSQL_SOCKET socket,
   @param LP Size of sockaddr_storage structure
 */
 #ifdef HAVE_PSI_SOCKET_INTERFACE
-#define mysql_socket_recvfrom(FD, B, N, FL, AP, LP) \
-  inline_mysql_socket_recvfrom(__FILE__, __LINE__, FD, B, N, FL, AP, LP)
+#define mysql_socket_recvfrom(C, FD, B, N, FL, AP, LP) \
+  inline_mysql_socket_recvfrom(__FILE__, __LINE__, C, FD, B, N, FL, AP, LP)
 #else
-#define mysql_socket_recvfrom(FD, B, N, FL, AP, LP) \
-  inline_mysql_socket_recvfrom(FD, B, N, FL, AP, LP)
+#define mysql_socket_recvfrom(C, FD, B, N, FL, AP, LP) \
+  inline_mysql_socket_recvfrom(C, FD, B, N, FL, AP, LP)
 #endif
 
 /**
@@ -801,7 +801,7 @@ static inline ssize_t inline_mysql_socket_sendto(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags,
+    struct config *conf, MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags,
     const struct sockaddr *addr, socklen_t addr_len) {
   ssize_t result;
 
@@ -816,8 +816,10 @@ static inline ssize_t inline_mysql_socket_sendto(
         &state, mysql_socket.m_psi, PSI_SOCKET_SEND, n, src_file, src_line);
 
     /* Instrumented code */
-    result =
-        sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+//    result =
+//        sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+
+    result = vio_dpdk_write(conf, buf, n);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -831,8 +833,10 @@ static inline ssize_t inline_mysql_socket_sendto(
 #endif
 
   /* Non instrumented code */
-  result =
-      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+//  result =
+//      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+
+  result = vio_dpdk_write(conf, buf, n);
 
   return result;
 }
@@ -843,7 +847,7 @@ static inline ssize_t inline_mysql_socket_recvfrom(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags,
+    struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags,
     struct sockaddr *addr, socklen_t *addr_len) {
   ssize_t result;
 
@@ -859,8 +863,22 @@ static inline ssize_t inline_mysql_socket_recvfrom(
                                                 src_file, src_line);
 
     /* Instrumented code */
-    result = recvfrom(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr,
-                      addr_len);
+//    result = recvfrom(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr,
+//                      addr_len);
+
+    if (conf->bytes == 0){
+      conf->msg_p = conf->msg;
+      vio_dpdk_read(conf, conf->msg_p, n);
+      memcpy(buf, conf->msg_p, n);
+      conf->bytes -= n;
+      conf->msg_p += n;
+    }else{
+      memcpy(buf, conf->msg_p, n);
+      conf->msg_p += n;
+      conf->bytes -= n;
+    }
+
+    result = n;
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -874,8 +892,22 @@ static inline ssize_t inline_mysql_socket_recvfrom(
 #endif
 
   /* Non instrumented code */
-  result =
-      recvfrom(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+//  result =
+//      recvfrom(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+
+  if (conf->bytes == 0){
+    conf->msg_p = conf->msg;
+    vio_dpdk_read(conf, conf->msg_p, n);
+    memcpy(buf, conf->msg_p, n);
+    conf->bytes -= n;
+    conf->msg_p += n;
+  }else{
+    memcpy(buf, conf->msg_p, n);
+    conf->msg_p += n;
+    conf->bytes -= n;
+  }
+
+  result = n;
 
   return result;
 }
