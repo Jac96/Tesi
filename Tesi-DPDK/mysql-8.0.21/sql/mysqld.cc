@@ -6488,7 +6488,7 @@ int mysqld_main(int argc, char **argv)
     }
   }
 
-  res = dpdk_init(&server_conf, eal_argc, eal_argv);
+  res = dpdk_server_init(&server_conf, eal_argc, eal_argv);
 
   if (res < 0) {
       return -1;

@@ -45,6 +45,10 @@
 
 #include "my_config.h"
 
+#include <pthread.h>
+
+static pthread_once_t client_is_initialized = PTHREAD_ONCE_INIT;
+
 #include <stdarg.h>
 #include <sys/types.h>
 
@@ -5703,7 +5707,9 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
 #ifdef HAVE_SYS_UN_H
   struct sockaddr_un UNIXaddr;
 #endif
-  printf("csm_begin_connect...\n");
+
+  //DPDK initialization for client
+  (void) pthread_once(&client_is_initialized, dpdk_client_init);
 
   /* Test whether we're already connected */
   if (net->vio) {

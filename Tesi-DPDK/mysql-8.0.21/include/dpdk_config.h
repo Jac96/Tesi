@@ -383,7 +383,7 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     return size;
 }
 
-static inline int dpdk_init(struct config *conf, int eal_argc, char* eal_argv[]) {
+static inline int dpdk_server_init(struct config *conf, int eal_argc, char* eal_argv[]) {
 
     int res;
 
@@ -534,4 +534,177 @@ static inline int dpdk_init(struct config *conf, int eal_argc, char* eal_argv[])
     return 0;
 }
 
+static inline void dpdk_client_init() {
 
+    int res;
+
+    struct rte_eth_conf PORT_CONF_INIT = {};
+
+    uint_t ports;   /* Number of ports available, must be equal to 1 for this
+                       application if DPDK is used. */
+    uint_t n_mbufs; /* Number of mbufs to create in a pool. */
+    uint_t port_id; /* The id of the DPDK port to be used. */
+
+    uint16_t tx_ring_descriptors, rx_ring_descriptors;
+
+    tx_ring_descriptors = 2048;
+    rx_ring_descriptors = 2048;
+
+    client_conf.bst_size = DEFAULT_BST_SIZE;
+    client_conf.local_port = CLIENT_PORT;
+    client_conf.remote_port = SERVER_PORT;
+    strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
+    strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
+    strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
+    strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
+    client_conf.bytes = 0;
+    client_conf.msg_p = client_conf.msg;
+
+    config *conf = &client_conf;
+
+    char* eal_argv[20];
+    int eal_argc = 3;
+    char separator[5] = "---";
+    char file_prefix[25] = "--file-prefix=client";
+    char vdev[40] = "--vdev=virtio_user0,path=/tmp/sock0";
+
+    //forcing client parameters
+    eal_argv[0] =  separator;
+    eal_argv[1] = file_prefix;
+    eal_argv[2] = vdev;
+
+
+    res = rte_eal_init(eal_argc, eal_argv);
+
+    if (res < 0)
+    {
+        PRINT_DPDK_ERROR("Unable to init RTE: %s.\n", rte_strerror(rte_errno));
+        return;
+    }
+
+
+    /* Get the number of DPDK ports available */
+    ports = rte_eth_dev_count_avail();
+    printf("PORTS: %d\n", ports);
+
+    if (ports == 0) {
+        PRINT_DPDK_ERROR("No ports found, %d == 0.\n", ports);
+        return;
+    }
+
+    /* Get the number of desired buffers and descriptors */
+    n_mbufs = RTE_MAX((rx_ring_descriptors + tx_ring_descriptors + conf->bst_size + 512), 8192U * 2);
+
+    /* Set it to an even number (easier to determine cache size) */
+    if (n_mbufs & 0x01)
+        ++n_mbufs;
+
+
+    // FINDING THE BIGGEST DIVISOR UNDER CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE
+    uint_t s_divisor = 1;
+    uint_t b_divisor = n_mbufs;
+    do
+    {
+        do
+        {
+            ++s_divisor;
+            // Iterate over odds number only after checking 2
+        } while ((n_mbufs % s_divisor != 0) && (!(s_divisor & 0x1) || s_divisor == 2));
+
+        b_divisor = n_mbufs / s_divisor;
+    } while (b_divisor > 512); // CONFIG_RTE_MEMPOOL_CACHE_MAX_SIZE=512 in DPDK configuration file
+    uint_t cache_size = b_divisor;
+
+    conf->dpdk.mbufs = rte_pktmbuf_pool_create(
+        "mbuf_pool",
+        n_mbufs,
+        cache_size,
+        0,
+        RTE_MBUF_DEFAULT_BUF_SIZE,
+        rte_socket_id());
+
+    if (conf->dpdk.mbufs == NULL)
+    {
+        PRINT_DPDK_ERROR("Unable to allocate mbufs: %s.\n", rte_strerror(rte_errno));
+        return;
+    }
+
+    struct rte_eth_txconf txq_conf;
+    struct rte_eth_conf local_port_conf = PORT_CONF_INIT;
+    struct rte_eth_dev_info dev_info;
+
+    local_port_conf.rxmode.split_hdr_size = 0;
+    local_port_conf.txmode.mq_mode = ETH_MQ_TX_NONE;
+
+    /* Since we checked that there must be only one port, its port id is 0. */
+    port_id = 0;
+    conf->dpdk.portid = port_id;
+    rte_eth_dev_info_get(port_id, &dev_info);
+
+    /* If able to offload TX to device, do it */
+    if (dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE) {
+       local_port_conf.txmode.offloads |= DEV_TX_OFFLOAD_MBUF_FAST_FREE;
+    }
+
+    /* Configure device */
+    res = rte_eth_dev_configure(port_id, 1, 1, &local_port_conf);
+    if (res < 0) {
+        PRINT_DPDK_ERROR("Cannot configure device: %s.\n",
+                         rte_strerror(rte_errno));
+        return;
+    }
+
+    /* Adjust number of TX and RX descriptors */
+    res = rte_eth_dev_adjust_nb_rx_tx_desc(port_id, &rx_ring_descriptors,
+                                           &tx_ring_descriptors);
+
+    if (res < 0) {
+        PRINT_DPDK_ERROR("Cannot adjust number of descriptors: %s.\n",
+                         rte_strerror(rte_errno));
+        return;
+    }
+
+    /* Get the source mac address that is associated with the given port */
+    // FIXME: NOT USED, USER MUST CONFIGURE THE MAC ADDRESS MANUALLY FROM
+    // COMMAND LINE
+    //rte_eth_macaddr_get(port_id, &conf->dpdk.src_mac_addr);
+
+    /* Configure TX queue */
+    txq_conf = dev_info.default_txconf;
+    txq_conf.offloads = local_port_conf.txmode.offloads;
+    res = rte_eth_tx_queue_setup(port_id, 0, tx_ring_descriptors,
+                                 rte_eth_dev_socket_id(port_id), &txq_conf);
+
+    if (res < 0) {
+        PRINT_DPDK_ERROR("Cannot configure TX: %s.\n", rte_strerror(rte_errno));
+        return;
+    }
+
+    /* Configure RX queue */
+    res = rte_eth_rx_queue_setup(port_id, 0, rx_ring_descriptors,
+                                 rte_eth_dev_socket_id(port_id), NULL,
+                                 conf->dpdk.mbufs);
+
+    if (res < 0) {
+        PRINT_DPDK_ERROR("Cannot configure RX: %s.\n", rte_strerror(rte_errno));
+        return;
+    }
+
+    /* Bring the device up */
+    res = rte_eth_dev_start(port_id);
+    if (res < 0) {
+        PRINT_DPDK_ERROR("Cannot start device: %s.\n", rte_strerror(rte_errno));
+        return;
+    }
+
+    /* Enable promiscuous mode */
+    /* NOTICE: The device will show packets that are not meant for the
+     * device MAC address too.
+     * */
+    res = rte_eth_promiscuous_enable(port_id);
+
+    if(res == 0)
+        printf("OK!\n");
+
+    return;
+}

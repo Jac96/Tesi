@@ -1236,53 +1236,6 @@ BOOL windows_ctrl_handler(DWORD fdwCtrlType) {
 
 int main(int argc, char *argv[]) {
 
-  /*DPDK eal init
-    DPDK parameters come after the '---'
-  */
-
-  // Default configuration for local program
-  client_conf.bst_size = DEFAULT_BST_SIZE;
-  client_conf.local_port = CLIENT_PORT;
-  client_conf.remote_port = SERVER_PORT;
-  strcpy(client_conf.local_ip, CLIENT_ADDR_IP);
-  strcpy(client_conf.remote_ip, SERVER_ADDR_IP);
-  strcpy(client_conf.local_mac, CLIENT_ADDR_MAC);
-  strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
-  client_conf.bytes = 0;
-  client_conf.msg_p = client_conf.msg;
-
-  char* eal_argv[20];
-  int eal_argc = 3;
-  char separator[5] = "---";
-  char file_prefix[25] = "--file-prefix=client";
-  char vdev[40] = "--vdev=virtio_user0,path=/tmp/sock0";
-
-  int res;
-
-  /*for(int i=0; i<argc; i++){
-    if(strcmp(argv[i], "---") == 0){
-      int k=0;
-      for(int j=i; j<argc; j++){
-        eal_argv[k] = argv[j];
-        k++;
-      }
-      eal_argc = k;
-      argc = argc - k - 1;
-      break;
-    }
-  }*/
-
-  //forcing client parameters
-  eal_argv[0] =  separator;
-  eal_argv[1] = file_prefix;
-  eal_argv[2] = vdev;
-
-  res = dpdk_init(&client_conf, eal_argc, eal_argv);
-
-  if (res < 0) {
-      printf("BAD DPDK INITIALIZATION!!\n");
-  }
-
   char buff[80];
 
   MY_INIT(argv[0]);
