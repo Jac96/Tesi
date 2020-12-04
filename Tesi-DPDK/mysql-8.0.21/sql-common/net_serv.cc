@@ -992,6 +992,8 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
 
+//  printf("DEBUG: net_write_raw_loop...\n");
+
   while (count) {
     size_t sentcnt = vio_write(net->vio, buf, count);
 
@@ -1333,6 +1335,8 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
 
 static bool net_read_raw_loop(NET *net, size_t count) {
   DBUG_TRACE;
+
+//  printf("DEBUG: net_read_raw_loop...\n");
 
   bool eof = false;
   unsigned int retry_count = 0;

@@ -210,6 +210,10 @@ class Channel_info_tcpip_socket : public Channel_info {
  protected:
   virtual Vio *create_and_init_vio() const {
     Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_TCPIP, 0);
+
+    //DPDK
+    vio->dpdk_config = server_conf;
+
 #ifdef USE_PPOLL_IN_VIO
     if (vio != nullptr) {
       vio->thread_id = my_thread_self();

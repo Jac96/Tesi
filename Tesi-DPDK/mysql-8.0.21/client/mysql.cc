@@ -1254,23 +1254,23 @@ int main(int argc, char *argv[]) {
   char* eal_argv[20];
   int eal_argc = 3;
   char separator[5] = "---";
-  char file_prefix[25] = "--file-prefix=client0";
+  char file_prefix[25] = "--file-prefix=client";
   char vdev[40] = "--vdev=virtio_user0,path=/tmp/sock0";
 
   int res;
 
-//  for(int i=0; i<argc; i++){
-//    if(strcmp(argv[i], "---") == 0){
-//      int k=0;
-//      for(int j=i; j<argc; j++){
-//        eal_argv[k] = argv[j];
-//        k++;
-//      }
-//      eal_argc = k;
-//      argc = argc - k - 1;
-//      break;
-//    }
-//  }
+  /*for(int i=0; i<argc; i++){
+    if(strcmp(argv[i], "---") == 0){
+      int k=0;
+      for(int j=i; j<argc; j++){
+        eal_argv[k] = argv[j];
+        k++;
+      }
+      eal_argc = k;
+      argc = argc - k - 1;
+      break;
+    }
+  }*/
 
   //forcing client parameters
   eal_argv[0] =  separator;

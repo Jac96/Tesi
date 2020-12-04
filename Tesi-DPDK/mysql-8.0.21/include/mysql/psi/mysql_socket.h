@@ -737,7 +737,6 @@ static inline ssize_t inline_mysql_socket_recv(
     struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf,
     size_t n, int flags MY_ATTRIBUTE((unused))) {
   ssize_t result;
-  ssize_t header_size = 4;
 
 #ifdef HAVE_PSI_SOCKET_INTERFACE
   if (mysql_socket.m_psi != nullptr) {
@@ -747,14 +746,15 @@ static inline ssize_t inline_mysql_socket_recv(
     locker = PSI_SOCKET_CALL(start_socket_wait)(&state, mysql_socket.m_psi,
                                                 PSI_SOCKET_RECV, (size_t)0,
                                                 src_file, src_line);
+    printf("DEBUG: Conf->bytes: %lu\n", conf->bytes);
 
     /* Instrumented code */
     if (conf->bytes == 0){
       conf->msg_p = conf->msg;
       vio_dpdk_read(conf, conf->msg_p, n);
-      memcpy(buf, conf->msg_p, header_size);
-      conf->bytes -= header_size;
-      conf->msg_p += header_size;
+      memcpy(buf, conf->msg_p, n);
+      conf->bytes -= n;
+      conf->msg_p += n;
     }else{
       memcpy(buf, conf->msg_p, n);
       conf->msg_p += n;
@@ -780,9 +780,9 @@ static inline ssize_t inline_mysql_socket_recv(
   if (conf->bytes == 0){
     conf->msg_p = conf->msg;
     vio_dpdk_read(conf, conf->msg_p, n);
-    memcpy(buf, conf->msg_p, header_size);
-    conf->bytes -= header_size;
-    conf->msg_p += header_size;
+    memcpy(buf, conf->msg_p, n);
+    conf->bytes -= n;
+    conf->msg_p += n;
   }else{
     memcpy(buf, conf->msg_p, n);
     conf->msg_p += n;

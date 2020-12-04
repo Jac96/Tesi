@@ -147,6 +147,7 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
                                   flags)) == -1) {
     int error = socket_errno;
 
+
     /* Error encountered that is unrelated to blocking; percolate it up. */
 #if SOCKET_EAGAIN == SOCKET_EWOULDBLOCK
     if (error != SOCKET_EAGAIN)

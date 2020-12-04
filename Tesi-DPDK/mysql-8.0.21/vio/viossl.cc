@@ -262,6 +262,10 @@ size_t vio_ssl_read(Vio *vio, uchar *buf, size_t size) {
 
   DBUG_TRACE;
 
+  printf("DEBUG: ssl_read...\n");
+  config *conf = &vio->dpdk_config;
+  size_t header_size = 4;
+
   while (true) {
     enum enum_vio_io_event event;
 
@@ -272,7 +276,20 @@ size_t vio_ssl_read(Vio *vio, uchar *buf, size_t size) {
     */
     DBUG_ASSERT(ERR_peek_error() == 0);
 
-    ret = SSL_read(ssl, buf, (int)size);
+//    ret = SSL_read(ssl, buf, (int)size);
+    if (conf->bytes == 0){
+      conf->msg_p = conf->msg;
+      vio_dpdk_read(conf, conf->msg_p, size);
+      memcpy(buf, conf->msg_p, header_size);
+      conf->bytes -= header_size;
+      conf->msg_p += header_size;
+    }else{
+      memcpy(buf, conf->msg_p, size);
+      conf->msg_p += size;
+      conf->bytes -= size;
+    }
+    
+    ret = size;
 
     if (ret >= 0) break;
 
@@ -301,6 +318,9 @@ size_t vio_ssl_write(Vio *vio, const uchar *buf, size_t size) {
   int ret;
   SSL *ssl = static_cast<SSL *>(vio->ssl_arg);
   unsigned long ssl_errno_not_used;
+  config *conf = &vio->dpdk_config;
+
+  printf("DEBUG: ssl_write...\n");
 
   DBUG_TRACE;
 
@@ -314,7 +334,10 @@ size_t vio_ssl_write(Vio *vio, const uchar *buf, size_t size) {
     */
     DBUG_ASSERT(ERR_peek_error() == 0);
 
-    ret = SSL_write(ssl, buf, (int)size);
+//    ret = SSL_write(ssl, buf, (int)size);
+    
+
+    ret = vio_dpdk_write(conf, buf, size);
 
     if (ret >= 0) break;
 

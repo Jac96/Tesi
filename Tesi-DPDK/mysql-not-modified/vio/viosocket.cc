@@ -137,6 +137,8 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   int flags = 0;
   DBUG_TRACE;
 
+  printf("DEBUG: vio_read...\n");
+
   /* Ensure nobody uses vio_read_buff and vio_read simultaneously. */
   DBUG_ASSERT(vio->read_end == vio->read_pos);
 
@@ -213,6 +215,8 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
+
+  printf("DEBUG: vio_write...\n");
 
   /* If timeout is enabled, do not block. */
   if (vio->write_timeout >= 0) flags = VIO_DONTWAIT;

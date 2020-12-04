@@ -5703,8 +5703,13 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
 #ifdef HAVE_SYS_UN_H
   struct sockaddr_un UNIXaddr;
 #endif
+  printf("csm_begin_connect...\n");
+
   /* Test whether we're already connected */
   if (net->vio) {
+
+    printf("WE ENTER HERE...\n");
+
     set_mysql_error(mysql, CR_ALREADY_CONNECTED, unknown_sqlstate);
     return STATE_MACHINE_FAILED;
   }
@@ -5996,12 +6001,15 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
       }
       /* Just reinitialize if one is already allocated. */
       else if (vio_reset(net->vio, VIO_TYPE_TCPIP, sock, nullptr, flags)) {
+        printf("RESETTING THE VIO\n");
         set_mysql_error(mysql, CR_UNKNOWN_ERROR, unknown_sqlstate);
         closesocket(sock);
         freeaddrinfo(res_lst);
         if (client_bind_ai_lst) freeaddrinfo(client_bind_ai_lst);
         return STATE_MACHINE_FAILED;
       }
+      //DPDK
+      net->vio->dpdk_config = client_conf;
 
       if (ctx->non_blocking)
         vio_set_blocking_flag(net->vio, !ctx->non_blocking);
