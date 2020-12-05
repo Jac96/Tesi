@@ -5714,8 +5714,6 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   /* Test whether we're already connected */
   if (net->vio) {
 
-    printf("WE ENTER HERE...\n");
-
     set_mysql_error(mysql, CR_ALREADY_CONNECTED, unknown_sqlstate);
     return STATE_MACHINE_FAILED;
   }
