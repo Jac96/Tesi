@@ -1,0 +1,76 @@
+Build started at 2020-12-07T09:04:08.142146
+Main binary: /usr/bin/python3
+Build Options: 
+Python system: Linux
+The Meson build system
+Version: 0.55.3
+Source dir: /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05
+Build dir: /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall
+Build type: native build
+Program cat found: YES
+Running command: /bin/cat /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/VERSION
+--- stdout ---
+20.05.0
+
+--- stderr ---
+
+
+None of 'PKG_CONFIG_PATH' are defined in the environment, not changing global flags.
+None of 'PKG_CONFIG_PATH' are defined in the environment, not changing global flags.
+Project name: DPDK
+Project version: 20.05.0
+None of 'CC' are defined in the environment, not changing global flags.
+None of 'CFLAGS' are defined in the environment, not changing global flags.
+None of 'LDFLAGS' are defined in the environment, not changing global flags.
+None of 'CPPFLAGS' are defined in the environment, not changing global flags.
+None of 'CC_LD' are defined in the environment, not changing global flags.
+Sanity testing C compiler: ccache cc
+Is cross compiler: False.
+None of 'CC_LD' are defined in the environment, not changing global flags.
+Sanity check compiler command line: ccache cc /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.c -o /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.exe -pipe -D_FILE_OFFSET_BITS=64
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Running test binary command: /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.exe
+C compiler for the build machine: ccache cc (gcc 7.5.0 "cc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0")
+C linker for the build machine: cc ld.bfd 2.30
+None of 'AR' are defined in the environment, not changing global flags.
+None of 'CC' are defined in the environment, not changing global flags.
+None of 'CFLAGS' are defined in the environment, not changing global flags.
+None of 'LDFLAGS' are defined in the environment, not changing global flags.
+None of 'CPPFLAGS' are defined in the environment, not changing global flags.
+None of 'CC_LD' are defined in the environment, not changing global flags.
+Sanity testing C compiler: ccache cc
+Is cross compiler: False.
+None of 'CC_LD' are defined in the environment, not changing global flags.
+Sanity check compiler command line: ccache cc /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.c -o /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.exe -pipe -D_FILE_OFFSET_BITS=64
+Sanity check compile stdout:
+
+-----
+Sanity check compile stderr:
+
+-----
+Running test binary command: /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/myinstall/meson-private/sanitycheckc.exe
+C compiler for the host machine: ccache cc (gcc 7.5.0 "cc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0")
+C linker for the host machine: cc ld.bfd 2.30
+None of 'AR' are defined in the environment, not changing global flags.
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Target machine cpu family: x86_64
+Target machine cpu: x86_64
+Program cat found: YES
+Running command: /bin/cat /data/jmalvatani/Tesi/Tesi-DPDK/dpdk-20.05/ABI_VERSION
+--- stdout ---
+20.0.2
+
+--- stderr ---
+
+
+Program ../buildtools/symlink-drivers-solibs.sh found: NO
+
+config/meson.build:67:6: ERROR: Script or command '../buildtools/symlink-drivers-solibs.sh' not found or not executable

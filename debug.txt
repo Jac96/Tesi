@@ -1,0 +1,6 @@
+DEBUG: mysql_real_connect...
+Host: localhost
+User: kamailio
+DB: kamailio
+Pass: kamailiorw
+Unix socket: (null)

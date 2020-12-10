@@ -137,6 +137,8 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   int flags = 0;
   DBUG_TRACE;
 
+  printf("DEBUG: vio_read...\n");
+
   /* Ensure nobody uses vio_read_buff and vio_read simultaneously. */
   DBUG_ASSERT(vio->read_end == vio->read_pos);
 
@@ -215,6 +217,8 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
   ssize_t ret;
   int flags = 0;
   DBUG_TRACE;
+
+  printf("DEBUG: vio_write...\n");
 
   /* If timeout is enabled, do not block. */
   if (vio->write_timeout >= 0) flags = VIO_DONTWAIT;
@@ -794,6 +798,10 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
   MYSQL_SOCKET_WAIT_VARIABLES(locker, state) /* no ';' */
   DBUG_TRACE;
 
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_vio_sock.txt", "w+");
+
+  fprintf(file, "DEBUG: vio_socket..\n");
+  fprintf(file, "SOCKET SD: %d\n", sd);
   memset(&pfd, 0, sizeof(pfd));
 
   pfd.fd = sd;
@@ -804,6 +812,7 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
   */
   switch (event) {
     case VIO_IO_EVENT_READ:
+      fprintf(file, "Vio_sock PASSO 1\n");
       pfd.events = MY_POLL_SET_IN;
 #ifndef DBUG_OFF
       revents = MY_POLL_SET_IN | MY_POLL_SET_ERR | POLLRDHUP;
@@ -817,17 +826,19 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
 #endif
       break;
   }
+  fprintf(file, "Vio_sock PASSO 2\n");
 
   MYSQL_START_SOCKET_WAIT(locker, &state, vio->mysql_socket, PSI_SOCKET_SELECT,
                           0);
 
+  fprintf(file, "Vio_sock PASSO 3\n");
 #ifdef USE_PPOLL_IN_VIO
   // Check if shutdown is in progress, if so return -1
   if (vio->poll_shutdown_flag.test_and_set()) return -1;
 
   timespec ts;
   timespec *ts_ptr = nullptr;
-
+  fprintf(file, "Vio_sock PASSO 4\n");
   if (timeout >= 0) {
     ts = {timeout / 1000, (timeout % 1000) * 1000000};
     ts_ptr = &ts;
@@ -845,6 +856,7 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
       thread_id is only set for servers, so signal_mask is unused for client
       libraries.
     */
+    fprintf(file, "Vio_sock PASSO 5\n");
     ret = ppoll(&pfd, 1, ts_ptr,
                 vio->thread_id != 0 ? &vio->signal_mask : nullptr);
 #else
@@ -853,6 +865,7 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
   } while (ret < 0 && vio_should_retry(vio) &&
            (retry_count++ < vio->retry_count));
 
+  fprintf(file, "Vio_sock PASSO 6 %d\n", ret);
 #ifdef USE_PPOLL_IN_VIO
   vio->poll_shutdown_flag.clear();
 #endif
@@ -862,6 +875,7 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
       /* On error, -1 is returned. */
       break;
     case 0:
+    fprintf(file, "Vio_sock PASSO 7\n");
       /*
         Set errno to indicate a timeout error.
         (This is not compiled in on WIN32.)

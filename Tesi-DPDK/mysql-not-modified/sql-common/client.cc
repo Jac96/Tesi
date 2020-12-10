@@ -5564,6 +5564,16 @@ MYSQL *STDCALL mysql_real_connect(MYSQL *mysql, const char *host,
   mysql_async_connect ctx;
   memset(&ctx, 0, sizeof(ctx));
 
+  int fd;
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug.txt", "w+");
+
+  fprintf(file, "DEBUG: mysql_real_connect...\n");
+  fprintf(file, "Host: %s\n", host);
+  fprintf(file, "User: %s\n", user);
+  fprintf(file, "DB: %s\n", db);
+  fprintf(file, "Pass: %s\n", passwd);
+  fprintf(file, "Unix socket: %s\n", unix_socket);
+
   ctx.mysql = mysql;
   ctx.host = host;
   ctx.port = port;

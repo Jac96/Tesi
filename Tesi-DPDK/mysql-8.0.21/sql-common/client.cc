@@ -140,6 +140,7 @@ static pthread_once_t client_is_initialized = PTHREAD_ONCE_INIT;
 using std::string;
 using std::swap;
 
+//DPDK
 struct config client_conf = {};
 
 #define STATE_DATA(M) \
@@ -5570,6 +5571,16 @@ MYSQL *STDCALL mysql_real_connect(MYSQL *mysql, const char *host,
                                   const char *db, uint port,
                                   const char *unix_socket, ulong client_flag) {
   DBUG_TRACE;
+
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_rc.txt", "w+");
+
+  fprintf(file, "DEBUG: mysql_real_connect...\n");
+  fprintf(file, "Host: %s\n", host);
+  fprintf(file, "User: %s\n", user);
+  fprintf(file, "DB: %s\n", db);
+  fprintf(file, "Pass: %s\n", passwd);
+  fprintf(file, "Unix socket: %s\n", unix_socket);
+
   mysql_state_machine_status status;
   mysql_async_connect ctx;
   memset(&ctx, 0, sizeof(ctx));
@@ -5585,6 +5596,8 @@ MYSQL *STDCALL mysql_real_connect(MYSQL *mysql, const char *host,
   ctx.client_flag = mysql->options.client_flag;
   ctx.state_function = csm_begin_connect;
   ctx.ssl_state = SSL_NONE;
+
+  fprintf(file, "PASSO csm_begin_connect\n");
 
   do {
     status = ctx.state_function(&ctx);
@@ -5694,6 +5707,16 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   bool connect_done =
       true;  // this is true for most of the connect methods except sockets
 
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_csm_bc.txt", "w+");
+
+  fprintf(file, "DEBUG: csm_begin_connect...\n");
+  fprintf(file, "Host: %s\n", host);
+  fprintf(file, "User: %s\n", user);
+  fprintf(file, "DB: %s\n", db);
+  fprintf(file, "Pass: %s\n", passwd);
+  fprintf(file, "Unix socket: %s\n", unix_socket);
+
+
   DBUG_TRACE;
 
   DBUG_PRINT("enter",
@@ -5753,6 +5776,8 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   if (!port) port = mysql->options.port;
   if (!unix_socket) unix_socket = mysql->options.unix_socket;
 
+  fprintf(file, "DEBUG: cms_bc socket: %s\n", unix_socket);
+
   mysql->server_status = SERVER_STATUS_AUTOCOMMIT;
   DBUG_PRINT("info", ("Connecting"));
 
@@ -5792,14 +5817,17 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   }
 #endif /* _WIN32 */
 #if defined(HAVE_SYS_UN_H)
+  fprintf(file, "csm ENTRO\n");
   if (!net->vio &&
       (!mysql->options.protocol ||
        mysql->options.protocol == MYSQL_PROTOCOL_SOCKET) &&
       (unix_socket || mysql_unix_port) &&
       (!host || !strcmp(host, LOCAL_HOST))) {
+    fprintf(file, "DEBUG: socket call...\n");
     my_socket sock = socket(AF_UNIX, SOCK_STREAM, 0);
     DBUG_PRINT("info", ("Using socket"));
     if (sock == SOCKET_ERROR) {
+      fprintf(file, "DEBUG: socket error...\n");
       set_mysql_extended_error(mysql, CR_SOCKET_CREATE_ERROR, unknown_sqlstate,
                                ER_CLIENT(CR_SOCKET_CREATE_ERROR), socket_errno);
       return STATE_MACHINE_FAILED;
@@ -5837,6 +5865,7 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
                            get_vio_connect_timeout(mysql), &connect_done)) {
       DBUG_PRINT("error",
                  ("Got error %d on connect to local server", socket_errno));
+      fprintf(file, "DEBUG: cms on vio_socket_connect error\n");
       set_mysql_extended_error(mysql, CR_CONNECTION_ERROR, unknown_sqlstate,
                                ER_CLIENT(CR_CONNECTION_ERROR), unix_socket,
                                socket_errno);
@@ -5844,6 +5873,7 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
       net->vio = nullptr;
       return STATE_MACHINE_FAILED;
     }
+    fprintf(file, "DEBUG: csm_bc passing vio_socket_connect\n");
     mysql->options.protocol = MYSQL_PROTOCOL_SOCKET;
   }
 #elif defined(_WIN32)
@@ -6073,6 +6103,7 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
   ctx->port = port;
   ctx->unix_socket = unix_socket;
   ctx->client_flag = client_flag;
+  fprintf(file, "DEBUG: csm_bc end function\n");
   return STATE_MACHINE_CONTINUE;
 }
 
@@ -6155,18 +6186,28 @@ static mysql_state_machine_status csm_complete_connect(
   MYSQL *mysql = ctx->mysql;
   NET *net = &mysql->net;
   DBUG_PRINT("info", ("net->vio: %p", net->vio));
+
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_csm_compconn.txt", "w+");
+
+  fprintf(file, "DEBUG: csm_complete_connect..\n");
+
   if (!net->vio) {
+    fprintf(file, "DEBUG: csm_cc PASSO 1\n");
     DBUG_PRINT("error", ("Unknow protocol %d ", mysql->options.protocol));
     set_mysql_error(mysql, CR_CONN_UNKNOW_PROTOCOL, unknown_sqlstate);
     return STATE_MACHINE_FAILED;
   }
 
+    fprintf(file, "DEBUG: csm_cc PASSO 2\n");
+
   if (my_net_init(net, net->vio)) {
+       fprintf(file, "DEBUG: csm_cc PASSO 3\n");
     vio_delete(net->vio);
     net->vio = nullptr;
     set_mysql_error(mysql, CR_OUT_OF_MEMORY, unknown_sqlstate);
     return STATE_MACHINE_FAILED;
   }
+    fprintf(file, "DEBUG: csm_cc PASSO 4\n");
   vio_keepalive(net->vio, true);
 
   /* If user set read_timeout, let it override the default */
@@ -6183,25 +6224,32 @@ static mysql_state_machine_status csm_complete_connect(
 
   if (mysql->options.max_allowed_packet)
     net->max_packet_size = mysql->options.max_allowed_packet;
+      fprintf(file, "DEBUG: csm_cc PASSO 5\n");
 
   MYSQL_TRACE(CONNECTED, mysql, ());
   MYSQL_TRACE_STAGE(mysql, WAIT_FOR_INIT_PACKET);
+
+  if(mysql->options.connect_timeout)
+    fprintf(file, "TRUE %d \n", mysql->options.connect_timeout);
+  else
+    fprintf(file, "FALSE %d \n", mysql->options.connect_timeout); 
 
   /* Get version info */
   mysql->protocol_version = PROTOCOL_VERSION; /* Assume this */
   if (mysql->options.connect_timeout && !ctx->non_blocking &&
       (vio_io_wait(net->vio, VIO_IO_EVENT_READ,
                    get_vio_connect_timeout(mysql)) < 1)) {
+    fprintf(file, "DEBUG: csm_cc PASSO 6\n");
     set_mysql_extended_error(mysql, CR_SERVER_LOST, unknown_sqlstate,
                              ER_CLIENT(CR_SERVER_LOST_EXTENDED),
                              "waiting for initial communication packet",
                              socket_errno);
     return STATE_MACHINE_FAILED;
   }
+  fprintf(file, "DEBUG: csm_cc PASSO 7\n");
   ctx->state_function = csm_read_greeting;
   return STATE_MACHINE_CONTINUE;
 }
-
 /**
   Read the greeting from the server that is read the first packet
 */
@@ -6209,6 +6257,10 @@ static mysql_state_machine_status csm_read_greeting(mysql_async_connect *ctx) {
   DBUG_TRACE;
   MYSQL *mysql = ctx->mysql;
   DBUG_PRINT("info", ("Read first packet."));
+
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_csm_rg.txt", "w+");
+
+  fprintf(file, "DEBUG: csm_read_greeting..\n");
 
   if (!ctx->non_blocking){
     ctx->pkt_length = cli_safe_read(mysql, nullptr);

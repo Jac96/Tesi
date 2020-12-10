@@ -1,0 +1,486 @@
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7
+DEBUG: vio_socket..
+SOCKET SD: 195
+Vio_sock PASSO 1
+Vio_sock PASSO 2
+Vio_sock PASSO 3
+Vio_sock PASSO 4
+Vio_sock PASSO 5
+Vio_sock PASSO 6 0
+Vio_sock PASSO 7

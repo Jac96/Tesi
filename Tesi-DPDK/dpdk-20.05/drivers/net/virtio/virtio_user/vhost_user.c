@@ -180,7 +180,7 @@ update_memory_region(const struct rte_memseg_list *msl __rte_unused,
 
 		return 0;
 	}
-
+        printf("memory regions: %d\n", i);
 	if (i >= VHOST_MEMORY_MAX_NREGIONS) {
 		PMD_DRV_LOG(ERR, "Too many memory regions");
 		return -1;

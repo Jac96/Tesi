@@ -449,7 +449,11 @@ Vio *vio_new(my_socket sd, enum enum_vio_type type, uint flags) {
   DBUG_TRACE;
   DBUG_PRINT("enter", ("sd: %d", sd));
 
+  FILE *file = fopen("/home/jmalvatani/Tesi/debug_vio_new.txt", "w+");
+
   mysql_socket_setfd(&mysql_socket, sd);
+  if(&mysql_socket == nullptr)
+   fprintf(file, "ERRORE mysql_socket\n");
   vio = mysql_socket_vio_new(mysql_socket, type, flags);
 
   return vio;

@@ -869,6 +869,8 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
   /* turn off non blocking operations */
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
+  printf("DEBUG: net_write_command...\n");  
+
   size_t length = len + 1 + head_len; /* 1 extra byte for command */
   uchar buff[NET_HEADER_SIZE + 1];
   uint header_size = NET_HEADER_SIZE + 1;
@@ -933,6 +935,8 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
 static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
+  printf("DEBUG: net_write_buff...\n");
+
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
     left_length = (ulong)(MAX_PACKET_LENGTH - (net->write_pos - net->buff));
@@ -991,6 +995,8 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
+
+printf("DEBUG: net_write_raw_loop...\n");
 
 //  printf("DEBUG: net_write_raw_loop...\n");
 
@@ -1291,6 +1297,8 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
   bool res;
   DBUG_TRACE;
 
+  printf("DEBUG: net_write_packet...\n");
+
   /* Socket can't be used */
   if (net->error == 2) return true;
 
@@ -1335,6 +1343,8 @@ bool net_write_packet(NET *net, const uchar *packet, size_t length) {
 
 static bool net_read_raw_loop(NET *net, size_t count) {
   DBUG_TRACE;
+
+  printf("DEBUG: net_read_raw_loop...\n");
 
 //  printf("DEBUG: net_read_raw_loop...\n");
 
@@ -1413,6 +1423,9 @@ static bool net_read_raw_loop(NET *net, size_t count) {
 
 static bool net_read_packet_header(NET *net) {
   uchar pkt_nr;
+
+  printf("DEBUG: net_read_packet_header...\n");
+
   size_t count = NET_HEADER_SIZE;
   bool rc;
 
@@ -2022,6 +2035,8 @@ static net_async_status net_read_uncompressed_nonblocking(NET *net,
 
 static size_t net_read_packet(NET *net, size_t *complen) {
   size_t pkt_len, pkt_data_len;
+
+  printf("DEBUG: net_read_packet...\n");
 
   *complen = 0;
 

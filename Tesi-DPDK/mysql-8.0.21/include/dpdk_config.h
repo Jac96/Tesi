@@ -334,10 +334,10 @@ static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) 
     while(pkts_rx == 0){
       pkts_rx = rte_eth_rx_burst(conf->dpdk.portid, 0, &pkt, 1);
     }
-    printf("DEBUG: vio_dpdk_read...\n");
+//    printf("DEBUG: vio_dpdk_read...\n");
     rte_eth_stats_get(conf->dpdk.portid, &stats);
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
+//    printf("ibytes: %lu\n", stats.ibytes);
+//    printf("obytes: %lu\n", stats.obytes);
     conf->bytes = stats.ibytes - data_offset;
     rte_eth_stats_reset(conf->dpdk.portid);
     rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
@@ -356,7 +356,7 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     struct rte_udp_hdr pkt_udp_hdr;
     struct rte_mbuf* pkt;
 
-    printf("DEBUG: vio_dpdk_write...\n");
+//    printf("DEBUG: vio_dpdk_write...\n");
 
     conf->pkt_size = data_offset + size;
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, conf);
@@ -375,8 +375,8 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     
     int res = rte_eth_stats_get(conf->dpdk.portid, &stats);
 
-    printf("ibytes: %lu\n", stats.ibytes);
-    printf("obytes: %lu\n", stats.obytes);
+//    printf("ibytes: %lu\n", stats.ibytes);
+//    printf("obytes: %lu\n", stats.obytes);
     rte_eth_stats_reset(conf->dpdk.portid);
     rte_pktmbuf_free(pkt);
 

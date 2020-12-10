@@ -710,6 +710,8 @@ static inline ssize_t inline_mysql_socket_send(
      result = vio_dpdk_write(conf, buf, n);
 //   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
 
+    printf("DEBUG: inviati %d\n", n);
+
     /* Instrumentation end */
     if (locker != nullptr) {
       size_t bytes_written;
@@ -724,6 +726,8 @@ static inline ssize_t inline_mysql_socket_send(
   /* Non instrumented code */
   result = vio_dpdk_write(conf, buf, n);
 //  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+
+    printf("DEBUG: inviati %d\n", n);
 
   return result;
 }
@@ -746,7 +750,6 @@ static inline ssize_t inline_mysql_socket_recv(
     locker = PSI_SOCKET_CALL(start_socket_wait)(&state, mysql_socket.m_psi,
                                                 PSI_SOCKET_RECV, (size_t)0,
                                                 src_file, src_line);
-    printf("DEBUG: Conf->bytes: %lu\n", conf->bytes);
 
     /* Instrumented code */
     if (conf->bytes == 0){
@@ -760,6 +763,8 @@ static inline ssize_t inline_mysql_socket_recv(
       conf->msg_p += n;
       conf->bytes -= n;
     }
+
+    printf("DEBUG: ricevuti %d\n", n);
 
     result = n;
 //    result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
@@ -788,6 +793,8 @@ static inline ssize_t inline_mysql_socket_recv(
     conf->msg_p += n;
     conf->bytes -= n;
   }
+
+    printf("DEBUG: ricevuti %d\n", n);
 
   result = n;
 //  result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
@@ -832,10 +839,10 @@ static inline ssize_t inline_mysql_socket_sendto(
 #endif
 
   /* Non instrumented code */
-//  result =
-//      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+  result =
+      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
 
-    result = vio_dpdk_write(conf, buf, n);
+//    result = vio_dpdk_write(conf, buf, n);
 
   return result;
 }

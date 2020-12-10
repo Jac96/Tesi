@@ -32,6 +32,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 /* For strlen() */
 #include <string.h>
 
+#include <stdio.h>
+
 /* For MY_STAT */
 #include "my_compiler.h"
 #include "my_dir.h"
@@ -704,6 +706,7 @@ static inline ssize_t inline_mysql_socket_send(
 
     /* Instrumented code */
     result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    printf("DEBUG: inviati %d\n", n);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -718,6 +721,7 @@ static inline ssize_t inline_mysql_socket_send(
 
   /* Non instrumented code */
   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  printf("DEBUG: inviati %d\n", n);
 
   return result;
 }
@@ -742,6 +746,7 @@ static inline ssize_t inline_mysql_socket_recv(
 
     /* Instrumented code */
     result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+    printf("DEBUG: ricevuti %d\n", n);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -756,6 +761,7 @@ static inline ssize_t inline_mysql_socket_recv(
 
   /* Non instrumented code */
   result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, flags);
+  printf("DEBUG: ricevuti %d\n", n);
 
   return result;
 }
