@@ -2235,6 +2235,8 @@ static void close_connections(void) {
   DBUG_TRACE;
   (void)RUN_HOOK(server_state, before_server_shutdown, (nullptr));
 
+  printf("DEBUG: close_connections...\n");
+
   Per_thread_connection_handler::kill_blocked_pthreads();
 
   uint dump_thread_count = 0;
@@ -6469,6 +6471,11 @@ int mysqld_main(int argc, char **argv)
   strcpy(server_conf.remote_mac, CLIENT_ADDR_MAC);
   server_conf.bytes = 0;
   server_conf.msg_p = server_conf.msg;
+
+//  pthread_mutexattr_init(&server_conf.Attr);
+//  pthread_mutexattr_settype(&server_conf.Attr, PTHREAD_MUTEX_RECURSIVE);
+
+  pthread_mutex_init(&mutex, NULL);//&server_conf.Attr);
 
   char* eal_argv[20];
   int eal_argc = 0;

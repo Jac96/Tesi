@@ -8,11 +8,13 @@
 
 /* -------------------------------- Includes -------------------------------- */
 
+#ifndef DPDK_CONFIG
+
+#define DPDK_CONFIG
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <sys/types.h>
 
 #include <netinet/in.h>
 #include <linux/if_ether.h>
@@ -23,6 +25,11 @@
 #include <rte_udp.h>
 #include <rte_ip.h>
 #include <rte_ethdev.h>
+
+#include <pthread.h>
+
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #undef likely
 #undef unlikely
@@ -137,6 +144,8 @@ struct config
     char *msg_p;
     size_t bytes;
 
+//    pthread_mutex_t mutex;
+//    pthread_mutexattr_t Attr;
 };
 
 struct config_defaults_triple {
@@ -144,6 +153,11 @@ struct config_defaults_triple {
     ipaddr_str ip;
     int port_number;
 };
+
+static pid_t gettid(void)
+{
+    return(syscall(SYS_gettid));
+}
 
 /**
  * I dont really like this solution, but it's better than
@@ -324,39 +338,43 @@ static inline void dpdk_setup_pkt_headers(
     ip_hdr->hdr_checksum = dpdk_calc_ipv4_checksum(ip_hdr);
 }
 
-static inline size_t vio_dpdk_read(struct config *conf, void *buf, size_t size) {
+static inline size_t vio_dpdk_read(struct config *conf) {
 
     struct rte_eth_stats stats;
     const size_t data_offset = OFFSET_DATA;
     struct rte_mbuf *pkt;
     size_t pkts_rx = 0;
 
+    printf("DEBUG: vio_dpdk_read..%d \n", gettid());
+
+//    pthread_mutex_lock(&conf->mutex);
+
     while(pkts_rx == 0){
       pkts_rx = rte_eth_rx_burst(conf->dpdk.portid, 0, &pkt, 1);
     }
-//    printf("DEBUG: vio_dpdk_read...\n");
+
+    printf("DEBUG: sono uscito dal ciclo  %d \n", gettid());
     rte_eth_stats_get(conf->dpdk.portid, &stats);
-//    printf("ibytes: %lu\n", stats.ibytes);
-//    printf("obytes: %lu\n", stats.obytes);
     conf->bytes = stats.ibytes - data_offset;
     rte_eth_stats_reset(conf->dpdk.portid);
-    rte_memcpy(buf, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
+    rte_memcpy(conf->msg_p, rte_pktmbuf_mtod_offset(pkt, char *, data_offset), conf->bytes);
 
     rte_pktmbuf_free(pkt);
 
-    return size;
+//    pthread_mutex_unlock(&conf->mutex);
+
+    return conf->bytes;
 }
 
 static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t size) {
 
-    struct rte_eth_stats stats;
     const size_t data_offset = OFFSET_DATA;
     struct rte_ether_hdr pkt_eth_hdr;
     struct rte_ipv4_hdr pkt_ip_hdr;
     struct rte_udp_hdr pkt_udp_hdr;
     struct rte_mbuf* pkt;
 
-//    printf("DEBUG: vio_dpdk_write...\n");
+    printf("DEBUG: vio_dpdk_write..%d \n", gettid());
 
     conf->pkt_size = data_offset + size;
     dpdk_setup_pkt_headers(&pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr, conf);
@@ -370,15 +388,18 @@ static inline size_t vio_dpdk_write(struct config *conf, const void *buf, size_t
     }
 
     dpdk_pkt_prepare(pkt, conf, &pkt_eth_hdr, &pkt_ip_hdr, &pkt_udp_hdr);
-    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf, size);
-    rte_eth_tx_burst(conf->dpdk.portid, 0, &pkt, 1);
-    
-    int res = rte_eth_stats_get(conf->dpdk.portid, &stats);
 
-//    printf("ibytes: %lu\n", stats.ibytes);
-//    printf("obytes: %lu\n", stats.obytes);
+//    pthread_mutex_lock(&conf->mutex);
+
+    rte_memcpy(rte_pktmbuf_mtod_offset(pkt, char*, data_offset), buf, size);
+
+    rte_eth_tx_burst(conf->dpdk.portid, 0, &pkt, 1);
+
+
     rte_eth_stats_reset(conf->dpdk.portid);
     rte_pktmbuf_free(pkt);
+
+//    pthread_mutex_unlock(&conf->mutex);
 
     return size;
 }
@@ -536,6 +557,8 @@ static inline int dpdk_server_init(struct config *conf, int eal_argc, char* eal_
 
 static inline void dpdk_client_init() {
 
+    printf("DEBUG: inizializzazione del client...\n\n");
+
     int res;
 
     struct rte_eth_conf PORT_CONF_INIT = {};
@@ -559,6 +582,11 @@ static inline void dpdk_client_init() {
     strcpy(client_conf.remote_mac, SERVER_ADDR_MAC);
     client_conf.bytes = 0;
     client_conf.msg_p = client_conf.msg;
+
+//    pthread_mutexattr_init(&client_conf.Attr);
+//    pthread_mutexattr_settype(&client_conf.Attr, PTHREAD_MUTEX_RECURSIVE);
+
+//    pthread_mutex_init(&client_conf.mutex, NULL);//&client_conf.Attr);
 
     config *conf = &client_conf;
 
@@ -708,3 +736,5 @@ static inline void dpdk_client_init() {
 
     return;
 }
+
+#endif

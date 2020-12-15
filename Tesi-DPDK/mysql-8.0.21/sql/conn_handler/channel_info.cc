@@ -55,6 +55,8 @@ THD *Channel_info::create_thd() {
 
 void Channel_info::send_error_and_close_channel(uint errorcode, int error,
                                                 bool senderror) {
+
+  printf("DEBUG: send_error_and_close_channel...\n");
   DBUG_ASSERT(errorcode != 0);
   if (!errorcode) return;
 

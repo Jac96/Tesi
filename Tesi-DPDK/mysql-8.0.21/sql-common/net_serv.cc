@@ -144,6 +144,8 @@ static mysql_compress_context *compress_context(NET *net) {
 
 bool my_net_init(NET *net, Vio *vio) {
   DBUG_TRACE;
+  printf("DEBUG: my_net_init...\n");
+
   net->vio = vio;
   my_net_local_init(net); /* Set some limits */
   if (!(net->buff = (uchar *)my_malloc(
@@ -185,6 +187,7 @@ bool my_net_init(NET *net, Vio *vio) {
 }
 
 void net_end(NET *net) {
+  printf("DEBUG: net_end...\n");
   DBUG_TRACE;
 #ifdef MYSQL_SERVER
   NET_SERVER *server_extension = static_cast<NET_SERVER *>(net->extension);
@@ -202,6 +205,8 @@ void net_claim_memory_ownership(NET *net) { my_claim(net->buff); }
 /** Realloc the packet buffer. */
 
 bool net_realloc(NET *net, size_t length) {
+  printf("DEBUG: net_realloc...\n");
+
   uchar *buff;
   size_t pkt_length;
   
@@ -258,6 +263,8 @@ bool net_realloc(NET *net, size_t length) {
 
 void net_clear(NET *net, bool check_buffer MY_ATTRIBUTE((unused))) {
   DBUG_TRACE;
+
+  printf("DEBUG: net_clear...\n");
 
   /* Ensure the socket buffer is empty, except for an EOF (at least 1). */
   DBUG_ASSERT(!check_buffer || (vio_pending(net->vio) <= 1));
@@ -426,6 +433,8 @@ static bool net_should_retry(NET *net,
 
 bool my_net_write(NET *net, const uchar *packet, size_t len) {
   uchar buff[NET_HEADER_SIZE];
+
+  printf("DEBUG: my_net_write.. %d \n", gettid());
 
   DBUG_DUMP("net write", packet, len);
 
@@ -869,7 +878,7 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
   /* turn off non blocking operations */
   if (!vio_is_blocking(net->vio)) vio_set_blocking_flag(net->vio, true);
 
-  printf("DEBUG: net_write_command...\n");  
+  printf("DEBUG: net_write_command...command: %c \n", command);  
 
   size_t length = len + 1 + head_len; /* 1 extra byte for command */
   uchar buff[NET_HEADER_SIZE + 1];
@@ -935,7 +944,7 @@ bool net_write_command(NET *net, uchar command, const uchar *header,
 static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
   DBUG_TRACE;
 
-  printf("DEBUG: net_write_buff...\n");
+  printf("DEBUG: net_write_buff.. %d \n", gettid());
 
   ulong left_length;
   if (net->compress && net->max_packet > MAX_PACKET_LENGTH)
@@ -996,9 +1005,7 @@ static bool net_write_buff(NET *net, const uchar *packet, size_t len) {
 static bool net_write_raw_loop(NET *net, const uchar *buf, size_t count) {
   unsigned int retry_count = 0;
 
-printf("DEBUG: net_write_raw_loop...\n");
-
-//  printf("DEBUG: net_write_raw_loop...\n");
+  printf("DEBUG: net_write_raw_loop...\n");
 
   while (count) {
     size_t sentcnt = vio_write(net->vio, buf, count);
@@ -1450,7 +1457,10 @@ static bool net_read_packet_header(NET *net) {
     rc = net_read_raw_loop(net, count);
   }
 
-  if (rc) return true;
+  if (rc){
+   printf("Here is the problem in reading header...\n");
+   return true;
+  }
 
   DBUG_DUMP("packet_header", net->buff + net->where_b, NET_HEADER_SIZE);
 
@@ -1460,10 +1470,13 @@ static bool net_read_packet_header(NET *net) {
     Verify packet serial number against the truncated packet counter.
     The local packet counter must be truncated since its not reset.
   */
+  printf("Serial number: %d %d\n", pkt_nr, (uchar)net->pkt_nr);
+
   if (pkt_nr != (uchar)net->pkt_nr) {
     /* Not a NET error on the client. XXX: why? */
 #if defined(MYSQL_SERVER)
     my_error(ER_NET_PACKETS_OUT_OF_ORDER, MYF(0));
+    printf("Problem in reading packet header...\n");
 #elif defined(EXTRA_DEBUG)
     /*
       We don't make noise server side, since the client is expected
@@ -2043,7 +2056,12 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   net->reading_or_writing = 1;
 
   /* Retrieve packet length and number. */
-  if (net_read_packet_header(net)) goto error;
+  if (net_read_packet_header(net)){
+   printf("ERROR WHILE READING PACKET HEADER...\n");
+    goto error;
+  }
+
+  printf("Packet header read correctly...\n");
 
   net->compress_pkt_nr = net->pkt_nr;
 
@@ -2078,6 +2096,7 @@ static size_t net_read_packet(NET *net, size_t *complen) {
   /* Read the packet data (payload). */
   if (net_read_raw_loop(net, pkt_len)) goto error;
 
+  printf("End of net_read_packet...\n");
 
 end:
   DBUG_DUMP("net read", net->buff + net->where_b, pkt_len);

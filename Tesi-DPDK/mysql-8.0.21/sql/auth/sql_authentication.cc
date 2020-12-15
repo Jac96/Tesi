@@ -1630,6 +1630,8 @@ static bool send_plugin_request_packet(MPVIO_EXT *mpvio, const uchar *data,
   DBUG_ASSERT(mpvio->packets_read == 1);
   static uchar switch_plugin_request_buf[] = {254};
 
+  printf("DEBUG: send_plugin_request_packet...\n");
+
   DBUG_TRACE;
 
   /*
@@ -2809,6 +2811,8 @@ skip_to_ssl:
 static inline int wrap_plguin_data_into_proper_command(NET *net,
                                                        const uchar *packet,
                                                        int packet_len) {
+  printf("DEBUG: wrap_plguin_data_into_proper_command\n");
+
   return net_write_command(net, 1, pointer_cast<const uchar *>(""), 0, packet,
                            packet_len);
 }

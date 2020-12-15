@@ -56,7 +56,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 #include "pfs_socket_provider.h"
 
 #include "dpdk_config.h"
-
+extern pthread_mutex_t mutex;
 
 #ifndef PSI_SOCKET_CALL
 #define PSI_SOCKET_CALL(M) psi_socket_service->M
@@ -707,10 +707,14 @@ static inline ssize_t inline_mysql_socket_send(
         &state, mysql_socket.m_psi, PSI_SOCKET_SEND, n, src_file, src_line);
 
     /* Instrumented code */
+     pthread_mutex_lock(&mutex);
      result = vio_dpdk_write(conf, buf, n);
-//   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+     pthread_mutex_unlock(&mutex);
 
-    printf("DEBUG: inviati %d\n", n);
+//   result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+//   printf("Send, socket: %d\n", mysql_socket.fd);
+
+    printf("DEBUG: inviati %lu\n", n);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -724,10 +728,13 @@ static inline ssize_t inline_mysql_socket_send(
 #endif
 
   /* Non instrumented code */
+//  pthread_mutex_lock(&mutex);
   result = vio_dpdk_write(conf, buf, n);
+//  pthread_mutex_unlock(&mutex);
 //  result = send(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+//  printf("Send, socket: %d\n", mysql_socket.fd);
 
-    printf("DEBUG: inviati %d\n", n);
+    printf("DEBUG: inviati %lu\n", n);
 
   return result;
 }
@@ -751,23 +758,28 @@ static inline ssize_t inline_mysql_socket_recv(
                                                 PSI_SOCKET_RECV, (size_t)0,
                                                 src_file, src_line);
 
+    pthread_mutex_lock(&mutex);
     /* Instrumented code */
     if (conf->bytes == 0){
       conf->msg_p = conf->msg;
-      vio_dpdk_read(conf, conf->msg_p, n);
+      result = vio_dpdk_read(conf);
       memcpy(buf, conf->msg_p, n);
       conf->bytes -= n;
       conf->msg_p += n;
     }else{
+      printf("DEBUG: read, coping from buffer...\n");
       memcpy(buf, conf->msg_p, n);
       conf->msg_p += n;
       conf->bytes -= n;
     }
-
-    printf("DEBUG: ricevuti %d\n", n);
+    pthread_mutex_unlock(&mutex);
 
     result = n;
+
 //    result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+//    printf("Recv, socket: %d\n", mysql_socket.fd);
+
+    printf("DEBUG: ricevuti %lu\n", n);
 
     /* Instrumentation end */
     if (locker != nullptr) {
@@ -782,22 +794,25 @@ static inline ssize_t inline_mysql_socket_recv(
 
   /* Non instrumented code */
 
-  if (conf->bytes == 0){
-    conf->msg_p = conf->msg;
-    vio_dpdk_read(conf, conf->msg_p, n);
-    memcpy(buf, conf->msg_p, n);
-    conf->bytes -= n;
-    conf->msg_p += n;
-  }else{
-    memcpy(buf, conf->msg_p, n);
-    conf->msg_p += n;
-    conf->bytes -= n;
-  }
-
-    printf("DEBUG: ricevuti %d\n", n);
-
-  result = n;
+//    pthread_mutex_lock(&mutex);
+    if (conf->bytes == 0){
+      conf->msg_p = conf->msg;
+      result = vio_dpdk_read(conf);
+      memcpy(buf, conf->msg_p, n);
+      conf->bytes -= n;
+      conf->msg_p += n;
+    }else{
+      printf("DEBUG: read, coping from buffer...\n");
+      memcpy(buf, conf->msg_p, n);
+      conf->msg_p += n;
+      conf->bytes -= n;
+    }
+//    pthread_mutex_unlock(&mutex);
+    result = n;
 //  result = recv(mysql_socket.fd, buf, IF_WIN((int), ) n, 0);
+//  printf("Recv, socket: %d\n", mysql_socket.fd);
+
+    printf("DEBUG: ricevuti %lu\n", n);
 
   return result;
 }
@@ -808,8 +823,8 @@ static inline ssize_t inline_mysql_socket_sendto(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    struct config *conf, MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags,
-    const struct sockaddr *addr, socklen_t addr_len) {
+    struct config *conf, MYSQL_SOCKET mysql_socket, const SOCKBUF_T *buf, size_t n, int flags MY_ATTRIBUTE((unused)),
+    const struct sockaddr *addr MY_ATTRIBUTE((unused)), socklen_t addr_len MY_ATTRIBUTE((unused))) {
   ssize_t result;
 
   printf("DEBUG: mysql_socket_sendto...\n\n");
@@ -839,10 +854,10 @@ static inline ssize_t inline_mysql_socket_sendto(
 #endif
 
   /* Non instrumented code */
-  result =
-      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
+//  result =
+//      sendto(mysql_socket.fd, buf, IF_WIN((int), ) n, flags, addr, addr_len);
 
-//    result = vio_dpdk_write(conf, buf, n);
+    result = vio_dpdk_write(conf, buf, n);
 
   return result;
 }
@@ -853,8 +868,8 @@ static inline ssize_t inline_mysql_socket_recvfrom(
 #ifdef HAVE_PSI_SOCKET_INTERFACE
     const char *src_file, uint src_line,
 #endif
-    struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags,
-    struct sockaddr *addr, socklen_t *addr_len) {
+    struct config *conf, MYSQL_SOCKET mysql_socket, SOCKBUF_T *buf, size_t n, int flags MY_ATTRIBUTE((unused)),
+    struct sockaddr *addr MY_ATTRIBUTE((unused)), socklen_t *addr_len MY_ATTRIBUTE((unused))) {
   ssize_t result;
 
   printf("DEBUG: mysql_socket_recvfrom...\n\n");
@@ -874,7 +889,7 @@ static inline ssize_t inline_mysql_socket_recvfrom(
 
     if (conf->bytes == 0){
       conf->msg_p = conf->msg;
-      vio_dpdk_read(conf, conf->msg_p, n);
+      vio_dpdk_read(conf);
       memcpy(buf, conf->msg_p, n);
       conf->bytes -= n;
       conf->msg_p += n;
@@ -903,7 +918,7 @@ static inline ssize_t inline_mysql_socket_recvfrom(
 
   if (conf->bytes == 0){
     conf->msg_p = conf->msg;
-    vio_dpdk_read(conf, conf->msg_p, n);
+    vio_dpdk_read(conf);
     memcpy(buf, conf->msg_p, n);
     conf->bytes -= n;
     conf->msg_p += n;

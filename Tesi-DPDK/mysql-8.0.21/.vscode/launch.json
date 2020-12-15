@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch sender",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "mysqld",
+            "args": [
+                "--user=root",
+                "-p",
+                "---",
+                "--proc-type=primary",
+                "--vdev=eth_vhost0,iface=/tmp/sock0"
+            ],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}", // O la directory che ti torna meglio
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerPath": "${env:HOME}/root-gdb", // Path del file che invoca gdb come sudo
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

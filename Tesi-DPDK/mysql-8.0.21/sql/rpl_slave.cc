@@ -2233,6 +2233,9 @@ bool sql_slave_killed(THD *thd, Relay_log_info *rli) {
 
 bool net_request_file(NET *net, const char *fname) {
   DBUG_TRACE;
+
+  printf("DEBUG: net_request_file...\n");
+
   return net_write_command(net, 251, pointer_cast<const uchar *>(fname),
                            strlen(fname), pointer_cast<const uchar *>(""), 0);
 }

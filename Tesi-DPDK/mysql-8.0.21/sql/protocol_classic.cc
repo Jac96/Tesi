@@ -613,6 +613,8 @@ bool net_send_error(THD *thd, uint sql_errno, const char *err) {
   bool error;
   DBUG_TRACE;
 
+  printf("DEBUG: net_send_error...\n");
+
   DBUG_ASSERT(!thd->sp_runtime_ctx);
   DBUG_ASSERT(sql_errno);
   DBUG_ASSERT(err);
@@ -650,6 +652,8 @@ bool net_send_error(THD *thd, uint sql_errno, const char *err) {
 
 bool net_send_error(NET *net, uint sql_errno, const char *err) {
   DBUG_TRACE;
+
+  printf("DEBUG: net_send_error..\n");
 
   DBUG_ASSERT(sql_errno && err);
 
@@ -859,6 +863,8 @@ bool net_send_error(NET *net, uint sql_errno, const char *err) {
 static bool net_send_ok(THD *thd, uint server_status, uint statement_warn_count,
                         ulonglong affected_rows, ulonglong id,
                         const char *message, bool eof_identifier) {
+  printf("DEBUG: net_send_ok...\n"); 
+ 
   Protocol *protocol = thd->get_protocol();
   NET *net = thd->get_protocol_classic()->get_net();
   uchar buff[MYSQL_ERRMSG_SIZE + 10];
@@ -1050,6 +1056,8 @@ static uchar eof_buff[1] = {(uchar)254}; /* Marker for end of fields */
 
 static bool net_send_eof(THD *thd, uint server_status,
                          uint statement_warn_count) {
+  printf("DEBUG: net_send_eof...\n");
+
   NET *net = thd->get_protocol_classic()->get_net();
   bool error = false;
   DBUG_TRACE;
@@ -1082,6 +1090,8 @@ static bool net_send_eof(THD *thd, uint server_status,
 
 static bool write_eof_packet(THD *thd, NET *net, uint server_status,
                              uint statement_warn_count) {
+  printf("DEBUG: write_eof_packet...\n");
+
   bool error;
   Protocol *protocol = thd->get_protocol();
   if (protocol->has_client_capability(CLIENT_PROTOCOL_41)) {
@@ -1230,6 +1240,8 @@ static bool net_send_error_packet(NET *net, uint sql_errno, const char *err,
   /* Converted error message is always null-terminated. */
   length = (uint)(strmake(pos, converted_err, MYSQL_ERRMSG_SIZE - 1) - buff);
 
+  printf("DEBUG: net_send_error_packet...\n");
+
   return net_write_command(net, uchar{255}, pointer_cast<const uchar *>(""), 0,
                            pointer_cast<uchar *>(buff), length);
 }
@@ -1273,6 +1285,7 @@ uchar *net_store_data(uchar *to, const uchar *from, size_t length) {
 *****************************************************************************/
 
 void Protocol_classic::init(THD *thd_arg) {
+  printf("DEBUG: init...\n");
   m_thd = thd_arg;
   packet = &m_thd->packet;
 #ifndef DBUG_OFF
@@ -1296,6 +1309,8 @@ bool Protocol_classic::store_field(const Field *field) {
 bool Protocol_classic::send_ok(uint server_status, uint statement_warn_count,
                                ulonglong affected_rows,
                                ulonglong last_insert_id, const char *message) {
+  printf("DEBUG: send_ok...\n");
+
   DBUG_TRACE;
   const bool retval =
       net_send_ok(m_thd, server_status, statement_warn_count, affected_rows,
@@ -1340,6 +1355,8 @@ bool Protocol_classic::send_eof(uint server_status, uint statement_warn_count) {
 bool Protocol_classic::send_error(uint sql_errno, const char *err_msg,
                                   const char *sql_state) {
   DBUG_TRACE;
+  printf("DEBUG: send_error...\n");
+
   const bool retval =
       net_send_error_packet(m_thd, sql_errno, err_msg, sql_state);
   // Reclaim some memory
@@ -2602,6 +2619,8 @@ MY_COMPILER_DIAGNOSTIC_POP()
 
 bool Protocol_classic::parse_packet(union COM_DATA *data,
                                     enum_server_command cmd) {
+  printf("DEBUG: parse_packet...\n");
+ 
   DBUG_TRACE;
   switch (cmd) {
     case COM_INIT_DB: {
@@ -2815,6 +2834,8 @@ bool Protocol_classic::create_command(COM_DATA *com_data,
 
 int Protocol_classic::get_command(COM_DATA *com_data,
                                   enum_server_command *cmd) {
+  printf("DEBUG: get_command...\n");
+
   // read packet from the network
   if (int rc = read_packet()) return rc;
 

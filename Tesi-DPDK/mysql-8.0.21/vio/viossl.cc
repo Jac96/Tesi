@@ -257,7 +257,7 @@ static bool ssl_should_retry(Vio *vio, int ret, enum enum_vio_io_event *event,
 
 size_t vio_ssl_read(Vio *vio, uchar *buf, size_t size) {
   int ret;
-  SSL *ssl = static_cast<SSL *>(vio->ssl_arg);
+//  SSL *ssl = static_cast<SSL *>(vio->ssl_arg);
   unsigned long ssl_errno_not_used;
 
   DBUG_TRACE;
@@ -279,7 +279,7 @@ size_t vio_ssl_read(Vio *vio, uchar *buf, size_t size) {
 //    ret = SSL_read(ssl, buf, (int)size);
     if (conf->bytes == 0){
       conf->msg_p = conf->msg;
-      vio_dpdk_read(conf, conf->msg_p, size);
+      vio_dpdk_read(conf);
       memcpy(buf, conf->msg_p, header_size);
       conf->bytes -= header_size;
       conf->msg_p += header_size;
@@ -316,7 +316,7 @@ size_t vio_ssl_read(Vio *vio, uchar *buf, size_t size) {
 
 size_t vio_ssl_write(Vio *vio, const uchar *buf, size_t size) {
   int ret;
-  SSL *ssl = static_cast<SSL *>(vio->ssl_arg);
+//  SSL *ssl = static_cast<SSL *>(vio->ssl_arg);
   unsigned long ssl_errno_not_used;
   config *conf = &vio->dpdk_config;
 

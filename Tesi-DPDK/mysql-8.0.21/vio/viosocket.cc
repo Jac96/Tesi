@@ -137,7 +137,7 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   int flags = 0;
   DBUG_TRACE;
 
-  printf("DEBUG: vio_read...\n");
+  printf("DEBUG: vio_read... %d \n", gettid());
 
   /* Ensure nobody uses vio_read_buff and vio_read simultaneously. */
   DBUG_ASSERT(vio->read_end == vio->read_pos);
@@ -148,6 +148,8 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
   while ((ret = mysql_socket_recv(&vio->dpdk_config, vio->mysql_socket, (SOCKBUF_T *)buf, size,
                                   flags)) == -1) {
     int error = socket_errno;
+
+    printf("Socket recv returned -1...\n");
 
 
     /* Error encountered that is unrelated to blocking; percolate it up. */
@@ -167,9 +169,12 @@ size_t vio_read(Vio *vio, uchar *buf, size_t size) {
       return -1;
     }
 
+    printf("Ripeto la read...\n");
     /* Wait for input data to become available. */
     if ((ret = vio_socket_io_wait(vio, VIO_IO_EVENT_READ))) break;
   }
+  printf("\nDEBUG: vio_read terminata...\n\n");
+
   return ret;
 }
 
@@ -218,7 +223,7 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
   int flags = 0;
   DBUG_TRACE;
 
-  printf("DEBUG: vio_write...\n");
+  printf("DEBUG: vio_write.. %d \n", gettid());
 
   /* If timeout is enabled, do not block. */
   if (vio->write_timeout >= 0) flags = VIO_DONTWAIT;
@@ -227,6 +232,8 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
                                   pointer_cast<const SOCKBUF_T *>(buf), size,
                                   flags)) == -1) {
     int error = socket_errno;
+
+    printf("Socket send returned -1...\n");
 
     /* The operation would block? */
 #if SOCKET_EAGAIN == SOCKET_EWOULDBLOCK
@@ -241,10 +248,12 @@ size_t vio_write(Vio *vio, const uchar *buf, size_t size) {
       return -1;
     }
 
+    printf("Ripeto la write...\n");
+
     /* Wait for the output buffer to become writable.*/
     if ((ret = vio_socket_io_wait(vio, VIO_IO_EVENT_WRITE))) break;
   }
-
+  printf("DEBUG: vio_write terminata...\n");
   return ret;
 }
 
@@ -803,6 +812,8 @@ int vio_io_wait(Vio *vio, enum enum_vio_io_event event, int timeout) {
   fprintf(file, "DEBUG: vio_socket..\n");
   fprintf(file, "SOCKET SD: %d\n", sd);
   memset(&pfd, 0, sizeof(pfd));
+
+  printf("DEBUG: VIO_IO_WAIT...\n");
 
   pfd.fd = sd;
 

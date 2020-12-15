@@ -260,6 +260,7 @@ static void *handle_connection(void *arg) {
   }
 
   for (;;) {
+    printf("DEBUG ARA: init thread in loop!\n");
     THD *thd = init_new_thd(channel_info);
     if (thd == nullptr) {
       connection_errors_internal++;
