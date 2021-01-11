@@ -141,7 +141,8 @@ using std::string;
 using std::swap;
 
 //DPDK
-struct config client_conf = {};
+struct config client_conf[30] = {};
+int conf_counter = 0;
 pthread_mutex_t mutex;
 
 #define STATE_DATA(M) \
@@ -5851,7 +5852,8 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
     printf("DEBUG: initializing VIO struct...\n");
 
     //DPDK
-    net->vio->dpdk_config = client_conf;
+    net->vio->dpdk_config = client_conf[1];
+    conf_counter++;
 
     if (!net->vio) {
       DBUG_PRINT("error", ("Unknow protocol %d ", mysql->options.protocol));
@@ -5874,6 +5876,8 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
     if (mysql->options.extension && mysql->options.extension->retry_count)
       my_net_set_retry_count(net, mysql->options.extension->retry_count);
 
+    printf("Attempting a connection to the server...\n\n");
+
     if (vio_socket_connect(net->vio, (struct sockaddr *)&UNIXaddr,
                            sizeof(UNIXaddr), ctx->non_blocking,
                            get_vio_connect_timeout(mysql), &connect_done)) {
@@ -5886,7 +5890,13 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
       net->vio = nullptr;
       return STATE_MACHINE_FAILED;
     }
-    printf("Setting mysql protocol to MYSQL_PROTOCOL_SOCKET\n");
+
+    char buf = (conf_counter-1) + '0';
+    printf("Dimensione buf %d\n", sizeof(buf));
+    //sending the portid for the DPDK communication
+    int ret = send(net->vio->mysql_socket.fd, &buf, sizeof(buf), 0);
+
+    printf("Setting mysql protocol to MYSQL_PROTOCOL_SOCKET %c\n", buf);
     mysql->options.protocol = MYSQL_PROTOCOL_SOCKET;
   }
 #elif defined(_WIN32)
@@ -6057,7 +6067,8 @@ static mysql_state_machine_status csm_begin_connect(mysql_async_connect *ctx) {
       }
       //DPDK
       printf("Setting vio dpdk structure in case of TCP..\n");
-      net->vio->dpdk_config = client_conf;
+      net->vio->dpdk_config = client_conf[1];
+      conf_counter++;
 
       if (ctx->non_blocking)
         vio_set_blocking_flag(net->vio, !ctx->non_blocking);

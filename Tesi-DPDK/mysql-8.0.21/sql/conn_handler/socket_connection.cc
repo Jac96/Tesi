@@ -86,6 +86,8 @@ extern "C" {
 #endif
 #include "connection_handler_manager.h"
 
+int actual_conn;
+
 using std::max;
 
 /** Number of connection errors when selecting on the listening port */
@@ -145,7 +147,8 @@ class Channel_info_local_socket : public Channel_info {
 
     Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_SOCKET, VIO_LOCALHOST);
     //DPDK
-    vio->dpdk_config = server_conf;
+    printf("Actual portid number %d\n\n", actual_conn);
+    vio->dpdk_config = server_conf[1];
 
 #ifdef USE_PPOLL_IN_VIO
     if (vio != nullptr) {
@@ -212,7 +215,7 @@ class Channel_info_tcpip_socket : public Channel_info {
     Vio *vio = mysql_socket_vio_new(m_connect_sock, VIO_TYPE_TCPIP, 0);
 
     //DPDK
-    vio->dpdk_config = server_conf;
+    vio->dpdk_config = server_conf[1];
 
 #ifdef USE_PPOLL_IN_VIO
     if (vio != nullptr) {
@@ -907,6 +910,7 @@ void Mysqld_socket_listener::setup_connection_events(
 */
 static bool accept_connection(MYSQL_SOCKET listen_sock,
                               MYSQL_SOCKET *connect_sock) {
+  printf("Accepting connection...\n\n");
   struct sockaddr_storage c_addr;
   for (uint retry = 0; retry < MAX_ACCEPT_RETRY; retry++) {
     socket_len_t length = sizeof(struct sockaddr_storage);
@@ -917,6 +921,12 @@ static bool accept_connection(MYSQL_SOCKET listen_sock,
         (socket_errno != SOCKET_EINTR && socket_errno != SOCKET_EAGAIN))
       break;
   }
+  //receiving the acualt portid from the client for the DPDK communication
+  char conn;
+  int ret = recv(mysql_socket_getfd(*connect_sock), &conn, 1, 0);
+  printf("Actual conn: %c\n\n", conn);
+  actual_conn = conn - '0';
+
   if (mysql_socket_getfd(*connect_sock) == INVALID_SOCKET) {
     /*
       accept(2) failed on the listening port, after many retries.

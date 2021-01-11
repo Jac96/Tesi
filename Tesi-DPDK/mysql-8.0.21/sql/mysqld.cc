@@ -1089,7 +1089,7 @@ inline void setup_fpu() {
 extern "C" void handle_fatal_signal(int sig);
 
 //DPDK
-struct config server_conf = {};
+struct config server_conf[30] = {};
 
 /* Constants */
 
@@ -6462,40 +6462,46 @@ int mysqld_main(int argc, char **argv)
   */
 
   // Default configuration for local program
-  server_conf.bst_size = DEFAULT_BST_SIZE;
-  server_conf.local_port = SERVER_PORT;
-  server_conf.remote_port = CLIENT_PORT;
-  strcpy(server_conf.local_ip, SERVER_ADDR_IP);
-  strcpy(server_conf.remote_ip, CLIENT_ADDR_IP);
-  strcpy(server_conf.local_mac, SERVER_ADDR_MAC);
-  strcpy(server_conf.remote_mac, CLIENT_ADDR_MAC);
-  server_conf.bytes = 0;
-  server_conf.msg_p = server_conf.msg;
-
+//  server_conf.bst_size = DEFAULT_BST_SIZE;
+//  server_conf.local_port = SERVER_PORT;
+//  server_conf.remote_port = CLIENT_PORT;
+//  strcpy(server_conf.local_ip, SERVER_ADDR_IP);
+//  strcpy(server_conf.remote_ip, CLIENT_ADDR_IP);
+//  strcpy(server_conf.local_mac, SERVER_ADDR_MAC);
+//  strcpy(server_conf.remote_mac, CLIENT_ADDR_MAC);
 //  pthread_mutexattr_init(&server_conf.Attr);
 //  pthread_mutexattr_settype(&server_conf.Attr, PTHREAD_MUTEX_RECURSIVE);
 
   pthread_mutex_init(&mutex, NULL);//&server_conf.Attr);
 
-  char* eal_argv[20];
-  int eal_argc = 0;
+  int eal_argc = 31;
+  char* eal_argv[eal_argc];
+
+  char vdev[30][40];
 
   int res;
 
-  for(int i=0; i<argc; i++){
-    if(strcmp(argv[i], "---") == 0){
-      int k=0;
-      for(int j=i; j<argc; j++){
-        eal_argv[k] = argv[j];
-        k++;
-      }
-      eal_argc = k;
-      argc = argc - k - 1;
-      break;
-    }
+//  for(int i=0; i<argc; i++){
+//    if(strcmp(argv[i], "---") == 0){
+//      int k=0;
+//      for(int j=i; j<argc; j++){
+//        eal_argv[k] = argv[j];
+//        k++;
+//      }
+//      eal_argc = k;
+//      argc = argc - k - 1;
+//      break;
+//    }
+//  }
+
+  eal_argv[0] = "--proc-type=primary";
+
+  for(int i=0; i<30; i++){
+    sprintf(vdev[i], "--vdev=eth_vhost%d,iface=/tmp/sock%d", i, i);
+    eal_argv[i+1] = vdev[i];
   }
 
-  res = dpdk_server_init(&server_conf, eal_argc, eal_argv);
+  res = dpdk_server_init(&server_conf[0], eal_argc, eal_argv);
 
   if (res < 0) {
       return -1;
